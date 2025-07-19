@@ -11,7 +11,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "typescript": "^5.8.3",
-    "wrangler": "^4.7.2"
+    "wrangler": "^4.25.0"
   },
   "dependencies": {
     "rss-parser": "^3.13.0"
