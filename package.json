@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "dev:invoke:rss": "curl 'http://localhost:8787/__scheduled?cron=0,10,20,30,40,50+*+*+*+*'",
+    "dev:invoke:twitter": "curl 'http://localhost:8787/__scheduled?cron=0,20,40+*+*+*+*'",
+    "typegen": "wrangler types",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

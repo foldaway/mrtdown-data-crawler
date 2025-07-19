@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mrtdown-data-crawler",
+  "compatibility_date": "2025-04-05",
+  "main": "src/index.ts",
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "triggers": {
+    "crons": [
+      "0,20,40 * * * *", // Very low frequency for Twitter
+      "0,10,20,30,40,50 * * * *" // Higher frequency for RSS
+    ]
+  }
+}
