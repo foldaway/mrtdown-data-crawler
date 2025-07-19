@@ -25,6 +25,22 @@ export default {
         content = await fetchRssFeeds(cutoffDateTime);
         break;
       }
+      case '': {
+        // Testing from dashboard code editor, run both for testing purposes.
+        const cutoffDateTime = DateTime.now().minus({ minutes: 10 });
+        content.push(
+          ...(await fetchRssFeeds(cutoffDateTime)),
+          ...(await fetchTwitterFeeds(
+            env.TWITTER_BEARER_TOKEN,
+            cutoffDateTime,
+          )),
+        );
+        break;
+      }
+      default: {
+        console.log(`[scheduled] Unhandled cron schedule: ${controller.cron}`);
+        return;
+      }
     }
 
     console.log(content);
