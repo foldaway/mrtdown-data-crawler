@@ -54,32 +54,29 @@ export async function fetchRssFeeds(
         const { contentSnippet, link, isoDate } = item;
         assert(contentSnippet != null);
 
-        console.log(
-          `[checkRssFeeds] account=${title} text=${contentSnippet} isoDate=${isoDate}`,
-        );
-
         if (!isTextRailRelated(contentSnippet)) {
-          console.log('[checkRssFeeds] irrelevant.');
           continue;
         }
 
         if (isoDate == null) {
-          console.log('[checkRssFeeds] missing date.');
           continue;
         }
 
         const dateTime = DateTime.fromISO(isoDate);
         if (!dateTime.isValid) {
           console.log(
-            `[checkRssFeeds] Could not parse date using ISO8601 ${isoDate}`,
+            `[checkRssFeeds] Could not parse date using ISO8601 account=${title} text=${contentSnippet} isoDate=${isoDate}`,
           );
           continue;
         }
 
         if (dateTime < cutoffDateTime) {
-          console.log('[checkRssFeeds] before cutoff.');
           continue;
         }
+
+        console.log(
+          `[checkRssFeeds] account=${title} text=${contentSnippet} isoDate=${isoDate}`,
+        );
 
         const createdAt = dateTime.setZone('Asia/Singapore').toISO();
         assert(createdAt != null);
@@ -119,30 +116,27 @@ export async function fetchRssFeeds(
         assert(title != null);
         assert(contentHtml != null);
 
-        console.log(`[checkRssFeeds] title=${title} isoDate=${isoDate}`);
-
         if (!isTextRailRelated(title) && !isTextRailRelated(contentHtml)) {
-          console.log('[checkRssFeeds] irrelevant.');
           continue;
         }
 
         if (isoDate == null) {
-          console.log('[checkRssFeeds] missing date.');
           continue;
         }
 
         const dateTime = DateTime.fromISO(isoDate);
         if (!dateTime.isValid) {
           console.log(
-            `[checkRssFeeds] Could not parse date using ISO8601 ${isoDate}`,
+            `[checkRssFeeds] Could not parse date using ISO8601 title=${title} isoDate=${isoDate}`,
           );
           continue;
         }
 
         if (dateTime < cutoffDateTime) {
-          console.log('[checkRssFeeds] before cutoff.');
           continue;
         }
+
+        console.log(`[checkRssFeeds] title=${title} isoDate=${isoDate}`);
 
         const createdAt = dateTime.setZone('Asia/Singapore').toISO();
         assert(createdAt != null);
@@ -190,30 +184,27 @@ export async function fetchRssFeeds(
         assert(title != null);
         assert(contentSnippet != null);
 
-        console.log(`[checkRssFeeds] title=${title} isoDate=${isoDate}`);
-
         if (!isTextRailRelated(title) && !isTextRailRelated(contentSnippet)) {
-          console.log('[checkRssFeeds] irrelevant.');
           continue;
         }
 
         if (isoDate == null) {
-          console.log('[checkRssFeeds] missing date.');
           continue;
         }
 
         const dateTime = DateTime.fromISO(isoDate);
         if (!dateTime.isValid) {
           console.log(
-            `[checkRssFeeds] Could not parse date using ISO8601 ${isoDate}`,
+            `[checkRssFeeds] Could not parse date using ISO8601 title=${title} isoDate=${isoDate}`,
           );
           continue;
         }
 
         if (dateTime < cutoffDateTime) {
-          console.log('[checkRssFeeds] before cutoff.');
           continue;
         }
+
+        console.log(`[checkRssFeeds] title=${title} isoDate=${isoDate}`);
 
         const createdAt = dateTime.setZone('Asia/Singapore').toISO();
         assert(createdAt != null);
