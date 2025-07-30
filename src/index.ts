@@ -2,8 +2,9 @@ import { DateTime } from 'luxon';
 import { fetchRssFeeds } from './sources/rss';
 import { fetchTwitterFeeds } from './sources/twitter';
 import type { IngestContent } from './types';
+import * as Sentry from '@sentry/cloudflare';
 
-export default {
+const app = {
   async scheduled(
     controller: ScheduledController,
     env: Env,
@@ -65,3 +66,14 @@ export default {
     );
   },
 };
+
+export default Sentry.withSentry((env) => {
+  const { id: versionId } = env.CF_VERSION_METADATA;
+
+  return {
+    dsn: env.SENTRY_DSN,
+    release: versionId,
+    environment: env.ENVIRONMENT,
+    sendDefaultPii: true,
+  };
+}, app);
