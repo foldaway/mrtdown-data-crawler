@@ -20,6 +20,7 @@
     "wrangler": "^4.25.0"
   },
   "dependencies": {
+    "@sentry/cloudflare": "^9.43.0",
     "hast-util-from-html": "^2.0.3",
     "hast-util-to-mdast": "^10.1.2",
     "luxon": "^3.7.1",
