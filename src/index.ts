@@ -68,7 +68,7 @@ const app = {
 };
 
 export default Sentry.withSentry((env) => {
-  const { id: versionId } = env.CF_VERSION_METADATA;
+  const versionId = env.CF_VERSION_METADATA?.id ?? undefined;
 
   return {
     dsn: env.SENTRY_DSN,
