@@ -60,7 +60,9 @@ const app = {
         },
         body: JSON.stringify({
           event_type: 'ingest',
-          client_payload: content,
+          client_payload: {
+            content,
+          },
         }),
       },
     );
