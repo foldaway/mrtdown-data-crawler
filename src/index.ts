@@ -51,7 +51,7 @@ const app = {
       return;
     }
 
-    await fetch(
+    const response = await fetch(
       'https://api.github.com/repos/foldaway/mrtdown-data/dispatches',
       {
         method: 'POST',
@@ -64,6 +64,7 @@ const app = {
         }),
       },
     );
+    console.log({ response });
   },
 };
 
