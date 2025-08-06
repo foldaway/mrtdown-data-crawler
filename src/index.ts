@@ -29,13 +29,34 @@ const app = {
       case '': {
         // Testing from dashboard code editor, run both for testing purposes.
         const cutoffDateTime = DateTime.now().minus({ minutes: 10 });
-        content.push(
-          ...(await fetchRssFeeds(cutoffDateTime)),
-          ...(await fetchTwitterFeeds(
-            env.TWITTER_BEARER_TOKEN,
-            cutoffDateTime,
-          )),
-        );
+        try {
+          content.push(...(await fetchRssFeeds(cutoffDateTime)));
+        } catch (e) {
+          console.error(e);
+        }
+
+        try {
+          content.push(
+            ...(await fetchTwitterFeeds(
+              env.TWITTER_BEARER_TOKEN,
+              cutoffDateTime,
+            )),
+          );
+        } catch (e) {
+          console.error(e);
+        }
+
+        // Add fake content for testing purposes
+        if (content.length === 0) {
+          content.push({
+            title: 'Test Content',
+            summary: '',
+            url: 'https://example.com/test-content',
+            createdAt: DateTime.now().toISO(),
+            source: 'news-website',
+          });
+        }
+
         break;
       }
       default: {
@@ -67,6 +88,7 @@ const app = {
       },
     );
     console.log({ response });
+    console.log(await response.text());
   },
 };
 
