@@ -78,6 +78,7 @@ const app = {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${env.GITHUB_ACCESS_TOKEN}`,
+          'User-Agent': 'mrtdown-data-crawler/1.0',
         },
         body: JSON.stringify({
           event_type: 'ingest',
