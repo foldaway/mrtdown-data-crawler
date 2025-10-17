@@ -19,7 +19,7 @@ export async function fetchTwitterFeeds(
   const users = response.includes?.users ?? [];
   const usersById = new Map(users.map((user) => [user.id, user]));
 
-  for (const tweet of response.data) {
+  for (const tweet of response.data ?? []) {
     const createdAt = DateTime.fromISO(tweet.created_at);
     if (createdAt < cutoffDateTime) {
       continue; // Skip tweets older than the cutoff date

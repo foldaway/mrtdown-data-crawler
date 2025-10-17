@@ -88,7 +88,7 @@ export interface User {
 }
 
 export interface TwitterRecentSearchResponse {
-  data: Tweet[];
+  data?: Tweet[];
   includes?: {
     users: User[];
   };
