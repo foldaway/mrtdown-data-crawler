@@ -14,9 +14,9 @@ export async function fetchTwitterFeeds(
     '(from:SBSTransit_Ltd OR from:SMRT_Singapore) -is:retweet (MRT OR LRT OR train OR track OR line OR fault)',
   );
 
-  console.log(response);
+  console.log({ response });
 
-  const { users } = response.includes;
+  const users = response.includes?.users ?? [];
   const usersById = new Map(users.map((user) => [user.id, user]));
 
   for (const tweet of response.data) {
