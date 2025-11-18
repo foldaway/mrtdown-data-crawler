@@ -2,9 +2,26 @@ const REGEX_PHRASE_MATCHES =
   /(additional travel time|regular svc|travel time|additional travell?ing time)/i;
 
 const wordMatches = new Set(
-  ['MRT', 'LRT', 'train', 'track', 'line', 'fault', 'breakdown'].map((word) =>
-    word.toLowerCase(),
-  ),
+  [
+    'MRT',
+    'LRT',
+    'train',
+    'track',
+    'line',
+    'fault',
+    'breakdown',
+    'BPLRT',
+    'SKLRT',
+    'PGLRT',
+    'SPLRT',
+    'CCL',
+    'DTL',
+    'EWL',
+    'NSL',
+    'TEL',
+    'JRL',
+    'CRL',
+  ].map((word) => word.toLowerCase()),
 );
 
 export function isTextRailRelated(text: string): boolean {
