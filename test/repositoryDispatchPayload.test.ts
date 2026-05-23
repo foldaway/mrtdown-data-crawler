@@ -88,7 +88,27 @@ describe('repository dispatch payload', () => {
         ],
         300,
       ),
-    ).toThrow(/repository_dispatch payload is too large/);
+    ).toThrow(/repository_dispatch payload is too large.*bytes/);
+  });
+
+  it('enforces the dispatch limit using UTF-8 byte length', () => {
+    const payload = buildRepositoryDispatchPayload(
+      [
+        newsArticle({
+          title: '服务更新'.repeat(10),
+          summary: '受影响车站'.repeat(10),
+          articleText: '列车服务已经恢复'.repeat(200),
+          articleTextSource: 'publisher',
+          articleTextFetchedAt: '2026-05-23T02:00:00.000Z',
+        }),
+      ],
+      1_600,
+    );
+
+    expect(payload.truncated).toBe(true);
+    expect(
+      new TextEncoder().encode(payload.body).byteLength,
+    ).toBeLessThanOrEqual(1_600);
   });
 });
 

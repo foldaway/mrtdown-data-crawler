@@ -189,10 +189,12 @@ function extractJsonLdArticleText(root: HastNode): string | null {
   const scriptTexts: string[] = [];
 
   visit(root, (node) => {
-    if (
-      node.tagName === 'script' &&
-      normalizeProperty(node.properties?.type) === 'application/ld+json'
-    ) {
+    const type = normalizeProperty(node.properties?.type)
+      .split(';', 1)[0]
+      .trim()
+      .toLowerCase();
+
+    if (node.tagName === 'script' && type === 'application/ld+json') {
       const text = getTextContent(node);
       if (text !== '') {
         scriptTexts.push(text);

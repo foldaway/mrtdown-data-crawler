@@ -11,7 +11,7 @@ describe('article enrichment', () => {
     const html = `
       <html>
         <head>
-          <script type="application/ld+json">
+          <script type="application/ld+json; charset=utf-8">
             {
               "@context": "https://schema.org",
               "@type": "NewsArticle",
