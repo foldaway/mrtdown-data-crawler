@@ -24,10 +24,14 @@ export function buildRepositoryDispatchPayload(
   content: IngestContent[],
   maxChars = REPOSITORY_DISPATCH_PAYLOAD_TARGET_CHARS,
 ): BuiltRepositoryDispatchPayload {
+  const effectiveMaxChars = Math.min(
+    maxChars,
+    GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
+  );
   let dispatchContent = content;
   let body = stringifyRepositoryDispatchPayload(dispatchContent);
 
-  if (body.length <= maxChars) {
+  if (body.length <= effectiveMaxChars) {
     return {
       content: dispatchContent,
       body,
@@ -38,7 +42,7 @@ export function buildRepositoryDispatchPayload(
   dispatchContent = content.map((item) => ({ ...item }));
   let truncated = false;
 
-  while (body.length > maxChars) {
+  while (body.length > effectiveMaxChars) {
     const index = findLargestArticleTextIndex(dispatchContent);
     if (index == null) {
       break;
@@ -50,7 +54,7 @@ export function buildRepositoryDispatchPayload(
     }
 
     const overage = Math.max(
-      body.length - maxChars,
+      body.length - effectiveMaxChars,
       body.length - GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
     );
     const targetLength =
@@ -71,6 +75,12 @@ export function buildRepositoryDispatchPayload(
 
     truncated = true;
     body = stringifyRepositoryDispatchPayload(dispatchContent);
+  }
+
+  if (body.length > effectiveMaxChars) {
+    throw new Error(
+      `repository_dispatch payload is too large after trimming optional article text: ${body.length} chars > ${effectiveMaxChars} chars`,
+    );
   }
 
   return {

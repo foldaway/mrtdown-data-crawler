@@ -130,10 +130,11 @@ async function fetchPublisherHtml(
     }
 
     const contentType = response.headers.get('content-type') ?? '';
+    const normalizedContentType = contentType.toLowerCase();
     if (
       contentType !== '' &&
-      !contentType.includes('text/html') &&
-      !contentType.includes('application/xhtml+xml')
+      !normalizedContentType.includes('text/html') &&
+      !normalizedContentType.includes('application/xhtml+xml')
     ) {
       throw new Error(`Unsupported content-type: ${contentType}`);
     }

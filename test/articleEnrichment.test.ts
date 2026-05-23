@@ -71,6 +71,44 @@ describe('article enrichment', () => {
     });
   });
 
+  it('accepts mixed-case HTML content types from publisher fetches', async () => {
+    const fetcher = async () =>
+      new Response(
+        `
+          <html>
+            <head>
+              <meta property="og:title" content="Train service resumes after mixed-case content type">
+              <meta property="og:description" content="The publisher response should still be treated as valid HTML.">
+            </head>
+          </html>
+        `,
+        {
+          headers: {
+            'content-type': 'Text/HTML; charset=utf-8',
+          },
+        },
+      );
+
+    const result = await enrichNewsArticle(
+      {
+        title: 'RSS title',
+        summary: 'RSS summary',
+        url: 'https://www.example.com/news/mixed-case-content-type',
+      },
+      {
+        fetcher,
+        now: () => fetchedAt,
+      },
+    );
+
+    expect(result).toEqual({
+      articleText:
+        'Train service resumes after mixed-case content type\n\nThe publisher response should still be treated as valid HTML.',
+      articleTextSource: 'metadata',
+      articleTextFetchedAt: '2026-05-22T04:00:00.000Z',
+    });
+  });
+
   it('extracts CNA-shaped article paragraphs without a source-specific adapter', () => {
     const html = `
       <html>
