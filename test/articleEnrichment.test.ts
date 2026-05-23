@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   enrichNewsArticle,
   extractArticleContextFromHtml,
@@ -25,7 +24,7 @@ describe('article enrichment', () => {
       </html>
     `;
 
-    assert.deepEqual(extractArticleContextFromHtml(html), {
+    expect(extractArticleContextFromHtml(html)).toEqual({
       source: 'publisher',
       text: 'Train fault delays commuters on the East-West Line\n\nOperator says additional travel time should be expected.\n\nCommuters travelling on the East-West Line were asked to add twenty minutes of travel time on Friday morning after a train fault near Jurong East. The operator said staff were deployed at affected stations and regular service resumed before the evening peak.',
     });
@@ -41,7 +40,7 @@ describe('article enrichment', () => {
       </html>
     `;
 
-    assert.deepEqual(extractArticleContextFromHtml(html), {
+    expect(extractArticleContextFromHtml(html)).toEqual({
       source: 'metadata',
       text: 'North-South Line services resume after signalling fault\n\nThe disruption affected several stations during the morning commute.',
     });
@@ -64,7 +63,7 @@ describe('article enrichment', () => {
       },
     );
 
-    assert.deepEqual(result, {
+    expect(result).toEqual({
       articleText:
         'Circle Line delay clears\n\nCommuters were told to expect extra travel time.',
       articleTextSource: 'metadata',
@@ -92,7 +91,7 @@ describe('article enrichment', () => {
       </html>
     `;
 
-    assert.deepEqual(extractArticleContextFromHtml(html), {
+    expect(extractArticleContextFromHtml(html)).toEqual({
       source: 'publisher',
       text: 'SINGAPORE: Train service on the Downtown Line resumed after a track fault caused delays between several stations on Friday afternoon.\n\nThe operator said free regular bus services were made available while engineers attended to the fault and station staff guided affected commuters.',
     });
@@ -112,7 +111,7 @@ describe('article enrichment', () => {
       </html>
     `;
 
-    assert.deepEqual(extractArticleContextFromHtml(html), {
+    expect(extractArticleContextFromHtml(html)).toEqual({
       source: 'publisher',
       text: 'Singapore - A signalling fault on the North East Line led to longer waits for commuters at several stations on Friday.\n\nSBS Transit said updates were posted on its social media channels and normal headways returned after checks were completed.',
     });
