@@ -22,6 +22,9 @@ export type IngestContentNewsArticle = {
   summary: string;
   url: string;
   createdAt: string;
+  articleText?: string;
+  articleTextSource?: 'publisher' | 'archive' | 'metadata';
+  articleTextFetchedAt?: string;
 };
 
 export type IngestContent =

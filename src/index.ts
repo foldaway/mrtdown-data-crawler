@@ -1,8 +1,8 @@
+import * as Sentry from '@sentry/cloudflare';
 import { DateTime } from 'luxon';
 import { fetchRssFeeds } from './sources/rss';
 import { fetchTwitterFeeds } from './sources/twitter';
 import type { IngestContent } from './types';
-import * as Sentry from '@sentry/cloudflare';
 
 const app = {
   async scheduled(
@@ -65,7 +65,7 @@ const app = {
       }
     }
 
-    console.log(content);
+    console.log(content.map(redactContentForLog));
 
     if (content.length === 0) {
       console.log('Nothing to process.');
@@ -92,6 +92,17 @@ const app = {
     console.log(await response.text());
   },
 };
+
+function redactContentForLog(content: IngestContent): IngestContent | object {
+  if (content.source !== 'news-website' || content.articleText == null) {
+    return content;
+  }
+
+  return {
+    ...content,
+    articleText: `[${content.articleText.length} chars redacted]`,
+  };
+}
 
 export default Sentry.withSentry((env) => {
   const versionId = env.CF_VERSION_METADATA?.id ?? undefined;

@@ -1,12 +1,13 @@
-import { DateTime } from 'luxon';
-import Parser from 'rss-parser';
-import { assert } from '../util/assert';
-import { isTextRailRelated } from '../helpers/isTextRailRelated';
-import type { IngestContent } from '../types';
 import { fromHtml } from 'hast-util-from-html';
 import { toMdast } from 'hast-util-to-mdast';
-import { toMarkdown } from 'mdast-util-to-markdown';
+import { DateTime } from 'luxon';
 import { gfmToMarkdown } from 'mdast-util-gfm';
+import { toMarkdown } from 'mdast-util-to-markdown';
+import Parser from 'rss-parser';
+import { isTextRailRelated } from '../helpers/isTextRailRelated';
+import type { IngestContent } from '../types';
+import { assert } from '../util/assert';
+import { enrichNewsArticle } from './articleEnrichment';
 
 const TWITTER_MASTODON_RSS_FEEDS: string[] = [
   'https://mastodon.social/@ltatrainservicealerts.rss',
@@ -218,7 +219,10 @@ export async function fetchRssFeeds(
           url: link,
         };
 
-        results.push(content);
+        results.push({
+          ...content,
+          ...(await enrichNewsArticle(content)),
+        });
       }
     } catch (e) {
       console.error(e);
