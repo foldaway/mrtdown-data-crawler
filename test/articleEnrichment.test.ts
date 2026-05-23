@@ -14,7 +14,7 @@ describe('article enrichment', () => {
           <script type="application/ld+json; charset=utf-8">
             {
               "@context": "https://schema.org",
-              "@type": "NewsArticle",
+              "@type": "https://schema.org/NewsArticle",
               "headline": "Train fault delays commuters on the East-West Line",
               "description": "Operator says additional travel time should be expected.",
               "articleBody": "Commuters travelling on the East-West Line were asked to add twenty minutes of travel time on Friday morning after a train fault near Jurong East. The operator said staff were deployed at affected stations and regular service resumed before the evening peak."

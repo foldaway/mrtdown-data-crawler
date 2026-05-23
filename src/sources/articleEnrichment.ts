@@ -255,7 +255,19 @@ function isArticleJsonLdType(type: unknown): boolean {
 
   return (
     typeof type === 'string' &&
-    ['Article', 'NewsArticle', 'ReportageNewsArticle'].includes(type)
+    ['Article', 'NewsArticle', 'ReportageNewsArticle'].includes(
+      normalizeJsonLdType(type),
+    )
+  );
+}
+
+function normalizeJsonLdType(type: string): string {
+  return (
+    type
+      .trim()
+      .split(/[\/#:]/)
+      .filter(Boolean)
+      .at(-1) ?? type
   );
 }
 
