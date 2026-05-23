@@ -91,6 +91,20 @@ describe('repository dispatch payload', () => {
     ).toThrow(/repository_dispatch payload is too large.*bytes/);
   });
 
+  it('uses the full GitHub dispatch byte limit by default', () => {
+    const content: IngestContent[] = [
+      {
+        source: 'mastodon',
+        accountName: 'Transit Updates',
+        text: 'A'.repeat(61_000),
+        url: 'https://www.example.com/social/update',
+        createdAt: '2026-05-23T02:00:00.000Z',
+      },
+    ];
+
+    expect(() => buildRepositoryDispatchPayload(content)).not.toThrow();
+  });
+
   it('enforces the dispatch limit using UTF-8 byte length', () => {
     const payload = buildRepositoryDispatchPayload(
       [

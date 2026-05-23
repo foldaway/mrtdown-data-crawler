@@ -1,8 +1,7 @@
 import type { IngestContent } from '../types';
 
 const REPOSITORY_DISPATCH_EVENT_TYPE = 'ingest';
-const GITHUB_REPOSITORY_DISPATCH_MAX_CHARS = 65_535;
-const REPOSITORY_DISPATCH_PAYLOAD_TARGET_CHARS = 60_000;
+const GITHUB_REPOSITORY_DISPATCH_MAX_BYTES = 65_535;
 const ARTICLE_TEXT_TRUNCATION_MARKER =
   '\n\n[truncated to fit repository_dispatch payload]';
 const MIN_TRUNCATED_ARTICLE_TEXT_CHARS = 500;
@@ -22,11 +21,11 @@ export type BuiltRepositoryDispatchPayload = {
 
 export function buildRepositoryDispatchPayload(
   content: IngestContent[],
-  maxBytes = REPOSITORY_DISPATCH_PAYLOAD_TARGET_CHARS,
+  maxBytes = GITHUB_REPOSITORY_DISPATCH_MAX_BYTES,
 ): BuiltRepositoryDispatchPayload {
   const effectiveMaxBytes = Math.min(
     maxBytes,
-    GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
+    GITHUB_REPOSITORY_DISPATCH_MAX_BYTES,
   );
   let dispatchContent = content;
   let body = stringifyRepositoryDispatchPayload(dispatchContent);
@@ -56,7 +55,7 @@ export function buildRepositoryDispatchPayload(
 
     const overage = Math.max(
       bodyBytes - effectiveMaxBytes,
-      bodyBytes - GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
+      bodyBytes - GITHUB_REPOSITORY_DISPATCH_MAX_BYTES,
     );
     const targetLength =
       item.articleText.length -

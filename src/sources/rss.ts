@@ -31,10 +31,14 @@ const NEWS_RSS_FEEDS: string[] = [
   'https://www.straitstimes.com/news/singapore/rss.xml',
 ];
 
+const NEWS_ARTICLE_ENRICHMENT_FETCH_LIMIT = 20;
+
 export async function fetchRssFeeds(
   cutoffDateTime: DateTime,
 ): Promise<IngestContent[]> {
   const results: IngestContent[] = [];
+  let remainingNewsArticleEnrichmentFetches =
+    NEWS_ARTICLE_ENRICHMENT_FETCH_LIMIT;
 
   const parser = new Parser();
 
@@ -219,10 +223,18 @@ export async function fetchRssFeeds(
           url: link,
         };
 
-        results.push({
-          ...content,
-          ...(await enrichNewsArticle(content)),
-        });
+        if (remainingNewsArticleEnrichmentFetches > 0) {
+          remainingNewsArticleEnrichmentFetches -= 1;
+          results.push({
+            ...content,
+            ...(await enrichNewsArticle(content)),
+          });
+        } else {
+          console.warn(
+            `[checkRssFeeds] skipped article enrichment fetch budget exhausted title=${title}`,
+          );
+          results.push(content);
+        }
       }
     } catch (e) {
       console.error(e);
