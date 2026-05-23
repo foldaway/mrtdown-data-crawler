@@ -1,7 +1,7 @@
 import type { IngestContent } from '../types';
 
 const REPOSITORY_DISPATCH_EVENT_TYPE = 'ingest';
-const GITHUB_REPOSITORY_DISPATCH_MAX_BYTES = 65_535;
+const GITHUB_REPOSITORY_DISPATCH_MAX_CHARS = 65_535;
 const ARTICLE_TEXT_TRUNCATION_MARKER =
   '\n\n[truncated to fit repository_dispatch payload]';
 const MIN_TRUNCATED_ARTICLE_TEXT_CHARS = 500;
@@ -21,17 +21,16 @@ export type BuiltRepositoryDispatchPayload = {
 
 export function buildRepositoryDispatchPayload(
   content: IngestContent[],
-  maxBytes = GITHUB_REPOSITORY_DISPATCH_MAX_BYTES,
+  maxChars = GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
 ): BuiltRepositoryDispatchPayload {
-  const effectiveMaxBytes = Math.min(
-    maxBytes,
-    GITHUB_REPOSITORY_DISPATCH_MAX_BYTES,
+  const effectiveMaxChars = Math.min(
+    maxChars,
+    GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
   );
   let dispatchContent = content;
   let body = stringifyRepositoryDispatchPayload(dispatchContent);
-  let bodyBytes = getUtf8ByteLength(body);
 
-  if (bodyBytes <= effectiveMaxBytes) {
+  if (body.length <= effectiveMaxChars) {
     return {
       content: dispatchContent,
       body,
@@ -42,7 +41,7 @@ export function buildRepositoryDispatchPayload(
   dispatchContent = content.map((item) => ({ ...item }));
   let truncated = false;
 
-  while (bodyBytes > effectiveMaxBytes) {
+  while (body.length > effectiveMaxChars) {
     const index = findLargestArticleTextIndex(dispatchContent);
     if (index == null) {
       break;
@@ -54,8 +53,8 @@ export function buildRepositoryDispatchPayload(
     }
 
     const overage = Math.max(
-      bodyBytes - effectiveMaxBytes,
-      bodyBytes - GITHUB_REPOSITORY_DISPATCH_MAX_BYTES,
+      body.length - effectiveMaxChars,
+      body.length - GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
     );
     const targetLength =
       item.articleText.length -
@@ -75,12 +74,11 @@ export function buildRepositoryDispatchPayload(
 
     truncated = true;
     body = stringifyRepositoryDispatchPayload(dispatchContent);
-    bodyBytes = getUtf8ByteLength(body);
   }
 
-  if (bodyBytes > effectiveMaxBytes) {
+  if (body.length > effectiveMaxChars) {
     throw new Error(
-      `repository_dispatch payload is too large after trimming optional article text: ${bodyBytes} bytes > ${effectiveMaxBytes} bytes`,
+      `repository_dispatch payload is too large after trimming optional article text: ${body.length} chars > ${effectiveMaxChars} chars`,
     );
   }
 
@@ -100,10 +98,6 @@ function stringifyRepositoryDispatchPayload(content: IngestContent[]): string {
   };
 
   return JSON.stringify(payload);
-}
-
-function getUtf8ByteLength(text: string): number {
-  return new TextEncoder().encode(text).byteLength;
 }
 
 function findLargestArticleTextIndex(content: IngestContent[]): number | null {
