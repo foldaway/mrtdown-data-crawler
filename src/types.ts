@@ -4,15 +4,6 @@ import type {
   IngestContentTwitter,
 } from '@mrtdown/ingest-contracts';
 
-export type {
-  IngestContent,
-  IngestContentNewsArticle,
-  IngestContentReddit,
-  IngestContentTwitter,
-  IngestMessage,
-  IngestPayload,
-} from '@mrtdown/ingest-contracts';
-
 export type ArticleTextSource = 'publisher' | 'archive' | 'metadata';
 
 export type EnrichedIngestContentNewsArticle = IngestContentNewsArticle & {
