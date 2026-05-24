@@ -1,5 +1,5 @@
+import type { IngestContent } from '@mrtdown/ingest-contracts';
 import { describe, expect, it } from 'vitest';
-import type { CrawlerIngestContent } from '../src/types';
 import { buildRepositoryDispatchPayload } from '../src/util/repositoryDispatchPayload';
 
 describe('repository dispatch payload', () => {
@@ -27,7 +27,7 @@ describe('repository dispatch payload', () => {
           title: 'Train service update',
           url: 'https://www.example.com/news/train-service-update',
           createdAt: '2026-05-23T02:00:00.000Z',
-        } as CrawlerIngestContent,
+        } as IngestContent,
       ]),
     ).toThrow(/Invalid ingest repository_dispatch client payload/);
   });
@@ -105,7 +105,7 @@ describe('repository dispatch payload', () => {
   });
 
   it('uses the full GitHub dispatch character limit by default', () => {
-    const content: CrawlerIngestContent[] = [
+    const content: IngestContent[] = [
       {
         source: 'mastodon',
         accountName: 'Transit Updates',
@@ -159,10 +159,8 @@ describe('repository dispatch payload', () => {
 });
 
 function newsArticle(
-  overrides: Partial<
-    Extract<CrawlerIngestContent, { source: 'news-website' }>
-  > = {},
-): Extract<CrawlerIngestContent, { source: 'news-website' }> {
+  overrides: Partial<Extract<IngestContent, { source: 'news-website' }>> = {},
+): Extract<IngestContent, { source: 'news-website' }> {
   return {
     source: 'news-website',
     title: 'Train service update',

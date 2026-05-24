@@ -1,5 +1,5 @@
+import type { IngestContent } from '@mrtdown/ingest-contracts';
 import { DateTime } from 'luxon';
-import type { CrawlerIngestContent } from '../../types';
 import { assert } from '../../util/assert';
 import { TwitterClient } from './client';
 
@@ -9,8 +9,8 @@ const SEARCH_QUERY =
 export async function fetchTwitterFeeds(
   twitterBearerToken: string,
   cutoffDateTime: DateTime,
-): Promise<CrawlerIngestContent[]> {
-  const results: CrawlerIngestContent[] = [];
+): Promise<IngestContent[]> {
+  const results: IngestContent[] = [];
   const twitterClient = new TwitterClient(twitterBearerToken);
 
   console.log(`[fetchTwitterFeeds] query=${SEARCH_QUERY}`);

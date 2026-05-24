@@ -1,5 +1,5 @@
+import type { IngestContentNewsArticleTextSource } from '@mrtdown/ingest-contracts';
 import { fromHtml } from 'hast-util-from-html';
-import type { ArticleTextSource } from '../types';
 
 const ARTICLE_FETCH_USER_AGENT =
   'mrtdown-data-crawler/1.0 (+https://github.com/foldaway/mrtdown-data-crawler; source-acquisition)';
@@ -10,7 +10,7 @@ const MIN_PARAGRAPH_CHARS = 40;
 
 type ArticleEnrichment = {
   articleText?: string;
-  articleTextSource?: ArticleTextSource;
+  articleTextSource?: IngestContentNewsArticleTextSource;
   articleTextFetchedAt?: string;
 };
 
@@ -32,7 +32,7 @@ type HastNode = {
 
 type ArticleContext = {
   text: string;
-  source: ArticleTextSource;
+  source: IngestContentNewsArticleTextSource;
 };
 
 export async function enrichNewsArticle(
