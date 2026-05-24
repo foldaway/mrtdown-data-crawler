@@ -1,18 +1,13 @@
 import type {
   IngestContentNewsArticle,
+  IngestContentNewsArticleTextSource,
   IngestContentReddit,
   IngestContentTwitter,
 } from '@mrtdown/ingest-contracts';
 
-export type ArticleTextSource = 'publisher' | 'archive' | 'metadata';
-
-export type EnrichedIngestContentNewsArticle = IngestContentNewsArticle & {
-  articleText?: string;
-  articleTextSource?: ArticleTextSource;
-  articleTextFetchedAt?: string;
-};
+export type ArticleTextSource = IngestContentNewsArticleTextSource;
 
 export type CrawlerIngestContent =
   | IngestContentTwitter
   | IngestContentReddit
-  | EnrichedIngestContentNewsArticle;
+  | IngestContentNewsArticle;
