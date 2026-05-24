@@ -1,4 +1,8 @@
-import type { IngestContent } from '../types';
+import {
+  type IngestPayload,
+  IngestPayloadSchema,
+} from '@mrtdown/ingest-contracts';
+import type { CrawlerIngestContent } from '../types';
 
 const REPOSITORY_DISPATCH_EVENT_TYPE = 'ingest';
 const GITHUB_REPOSITORY_DISPATCH_MAX_CHARS = 65_535;
@@ -8,19 +12,17 @@ const MIN_TRUNCATED_ARTICLE_TEXT_CHARS = 500;
 
 type RepositoryDispatchPayload = {
   event_type: typeof REPOSITORY_DISPATCH_EVENT_TYPE;
-  client_payload: {
-    content: IngestContent[];
-  };
+  client_payload: IngestPayload;
 };
 
 export type BuiltRepositoryDispatchPayload = {
-  content: IngestContent[];
+  content: CrawlerIngestContent[];
   body: string;
   truncated: boolean;
 };
 
 export function buildRepositoryDispatchPayload(
-  content: IngestContent[],
+  content: CrawlerIngestContent[],
   maxChars = GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
 ): BuiltRepositoryDispatchPayload {
   const effectiveMaxChars = Math.min(
@@ -89,18 +91,29 @@ export function buildRepositoryDispatchPayload(
   };
 }
 
-function stringifyRepositoryDispatchPayload(content: IngestContent[]): string {
+function stringifyRepositoryDispatchPayload(
+  content: CrawlerIngestContent[],
+): string {
+  const clientPayload = { content } satisfies IngestPayload;
+  const validationResult = IngestPayloadSchema.safeParse(clientPayload);
+
+  if (!validationResult.success) {
+    throw new Error(
+      `Invalid ingest repository_dispatch client payload: ${validationResult.error.message}`,
+    );
+  }
+
   const payload: RepositoryDispatchPayload = {
     event_type: REPOSITORY_DISPATCH_EVENT_TYPE,
-    client_payload: {
-      content,
-    },
+    client_payload: clientPayload,
   };
 
   return JSON.stringify(payload);
 }
 
-function findLargestArticleTextIndex(content: IngestContent[]): number | null {
+function findLargestArticleTextIndex(
+  content: CrawlerIngestContent[],
+): number | null {
   let largestIndex: number | null = null;
   let largestLength = 0;
 

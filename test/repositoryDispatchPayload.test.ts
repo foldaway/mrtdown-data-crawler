@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IngestContent } from '../src/types';
+import type { CrawlerIngestContent } from '../src/types';
 import { buildRepositoryDispatchPayload } from '../src/util/repositoryDispatchPayload';
 
 describe('repository dispatch payload', () => {
@@ -17,6 +17,19 @@ describe('repository dispatch payload', () => {
     expect(payload.truncated).toBe(false);
     expect(payload.content).toEqual(content);
     expect(payload.body.length).toBeLessThanOrEqual(2_000);
+  });
+
+  it('validates the client payload against the shared ingest contract', () => {
+    expect(() =>
+      buildRepositoryDispatchPayload([
+        {
+          source: 'news-website',
+          title: 'Train service update',
+          url: 'https://www.example.com/news/train-service-update',
+          createdAt: '2026-05-23T02:00:00.000Z',
+        } as CrawlerIngestContent,
+      ]),
+    ).toThrow(/Invalid ingest repository_dispatch client payload/);
   });
 
   it('truncates optional article text to fit the dispatch payload', () => {
@@ -92,7 +105,7 @@ describe('repository dispatch payload', () => {
   });
 
   it('uses the full GitHub dispatch character limit by default', () => {
-    const content: IngestContent[] = [
+    const content: CrawlerIngestContent[] = [
       {
         source: 'mastodon',
         accountName: 'Transit Updates',
@@ -146,8 +159,10 @@ describe('repository dispatch payload', () => {
 });
 
 function newsArticle(
-  overrides: Partial<Extract<IngestContent, { source: 'news-website' }>> = {},
-): Extract<IngestContent, { source: 'news-website' }> {
+  overrides: Partial<
+    Extract<CrawlerIngestContent, { source: 'news-website' }>
+  > = {},
+): Extract<CrawlerIngestContent, { source: 'news-website' }> {
   return {
     source: 'news-website',
     title: 'Train service update',

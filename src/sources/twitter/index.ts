@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
-import { TwitterClient } from './client';
-import type { IngestContent } from '../../types';
+import type { CrawlerIngestContent } from '../../types';
 import { assert } from '../../util/assert';
+import { TwitterClient } from './client';
 
 const SEARCH_QUERY =
   '(from:SBSTransit_Ltd OR from:SMRT_Singapore) -is:retweet (MRT OR LRT OR train OR track OR line OR fault)';
@@ -9,15 +9,18 @@ const SEARCH_QUERY =
 export async function fetchTwitterFeeds(
   twitterBearerToken: string,
   cutoffDateTime: DateTime,
-): Promise<IngestContent[]> {
-  const results: IngestContent[] = [];
+): Promise<CrawlerIngestContent[]> {
+  const results: CrawlerIngestContent[] = [];
   const twitterClient = new TwitterClient(twitterBearerToken);
 
   console.log(`[fetchTwitterFeeds] query=${SEARCH_QUERY}`);
 
   try {
     const response = await twitterClient.recentSearch(SEARCH_QUERY);
-    console.log(`[fetchTwitterFeeds] response=`, JSON.stringify(response, null, 2));
+    console.log(
+      '[fetchTwitterFeeds] response=',
+      JSON.stringify(response, null, 2),
+    );
 
     const tweets = response.data ?? [];
     const meta = response.meta;
@@ -27,7 +30,9 @@ export async function fetchTwitterFeeds(
 
     const users = response.includes?.users ?? [];
     const usersById = new Map(users.map((user) => [user.id, user]));
-    console.log(`[fetchTwitterFeeds] users=${users.map((u) => u.username).join(', ')}`);
+    console.log(
+      `[fetchTwitterFeeds] users=${users.map((u) => u.username).join(', ')}`,
+    );
 
     for (const tweet of tweets) {
       const createdAt = DateTime.fromISO(tweet.created_at);

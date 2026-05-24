@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/cloudflare';
 import { DateTime } from 'luxon';
 import { fetchRssFeeds } from './sources/rss';
 import { fetchTwitterFeeds } from './sources/twitter';
-import type { IngestContent } from './types';
+import type { CrawlerIngestContent } from './types';
 import { buildRepositoryDispatchPayload } from './util/repositoryDispatchPayload';
 
 const app = {
@@ -11,7 +11,7 @@ const app = {
     env: Env,
     ctx: ExecutionContext,
   ) {
-    let content: IngestContent[] = [];
+    let content: CrawlerIngestContent[] = [];
 
     switch (controller.cron) {
       case '0,20,40 * * * *': {
@@ -96,7 +96,9 @@ const app = {
   },
 };
 
-function redactContentForLog(content: IngestContent): IngestContent | object {
+function redactContentForLog(
+  content: CrawlerIngestContent,
+): CrawlerIngestContent | object {
   if (content.source !== 'news-website' || content.articleText == null) {
     return content;
   }

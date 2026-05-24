@@ -1,4 +1,5 @@
 import { fromHtml } from 'hast-util-from-html';
+import type { ArticleTextSource } from '../types';
 
 const ARTICLE_FETCH_USER_AGENT =
   'mrtdown-data-crawler/1.0 (+https://github.com/foldaway/mrtdown-data-crawler; source-acquisition)';
@@ -6,8 +7,6 @@ const ARTICLE_FETCH_TIMEOUT_MS = 8_000;
 const MAX_RESPONSE_BYTES = 1_000_000;
 const MAX_ARTICLE_TEXT_CHARS = 12_000;
 const MIN_PARAGRAPH_CHARS = 40;
-
-type ArticleTextSource = 'publisher' | 'archive' | 'metadata';
 
 type ArticleEnrichment = {
   articleText?: string;
