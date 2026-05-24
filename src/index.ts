@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/cloudflare';
+import type { IngestContent } from '@mrtdown/ingest-contracts';
 import { DateTime } from 'luxon';
 import { fetchRssFeeds } from './sources/rss';
 import { fetchTwitterFeeds } from './sources/twitter';
-import type { CrawlerIngestContent } from './types';
 import { buildRepositoryDispatchPayload } from './util/repositoryDispatchPayload';
 
 const app = {
@@ -11,7 +11,7 @@ const app = {
     env: Env,
     ctx: ExecutionContext,
   ) {
-    let content: CrawlerIngestContent[] = [];
+    let content: IngestContent[] = [];
 
     switch (controller.cron) {
       case '0,20,40 * * * *': {
@@ -97,8 +97,8 @@ const app = {
 };
 
 function redactContentForLog(
-  content: CrawlerIngestContent,
-): CrawlerIngestContent | object {
+  content: IngestContent,
+): IngestContent | object {
   if (content.source !== 'news-website' || content.articleText == null) {
     return content;
   }

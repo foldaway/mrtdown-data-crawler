@@ -1,8 +1,8 @@
 import {
+  type IngestContent,
   type IngestPayload,
   IngestPayloadSchema,
 } from '@mrtdown/ingest-contracts';
-import type { CrawlerIngestContent } from '../types';
 
 const REPOSITORY_DISPATCH_EVENT_TYPE = 'ingest';
 const GITHUB_REPOSITORY_DISPATCH_MAX_CHARS = 65_535;
@@ -16,13 +16,13 @@ type RepositoryDispatchPayload = {
 };
 
 export type BuiltRepositoryDispatchPayload = {
-  content: CrawlerIngestContent[];
+  content: IngestContent[];
   body: string;
   truncated: boolean;
 };
 
 export function buildRepositoryDispatchPayload(
-  content: CrawlerIngestContent[],
+  content: IngestContent[],
   maxChars = GITHUB_REPOSITORY_DISPATCH_MAX_CHARS,
 ): BuiltRepositoryDispatchPayload {
   const effectiveMaxChars = Math.min(
@@ -92,7 +92,7 @@ export function buildRepositoryDispatchPayload(
 }
 
 function stringifyRepositoryDispatchPayload(
-  content: CrawlerIngestContent[],
+  content: IngestContent[],
 ): string {
   const clientPayload = { content } satisfies IngestPayload;
   const validationResult = IngestPayloadSchema.safeParse(clientPayload);
@@ -112,7 +112,7 @@ function stringifyRepositoryDispatchPayload(
 }
 
 function findLargestArticleTextIndex(
-  content: CrawlerIngestContent[],
+  content: IngestContent[],
 ): number | null {
   let largestIndex: number | null = null;
   let largestLength = 0;

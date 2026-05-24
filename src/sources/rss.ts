@@ -1,3 +1,4 @@
+import type { IngestContent } from '@mrtdown/ingest-contracts';
 import { fromHtml } from 'hast-util-from-html';
 import { toMdast } from 'hast-util-to-mdast';
 import { DateTime } from 'luxon';
@@ -5,7 +6,6 @@ import { gfmToMarkdown } from 'mdast-util-gfm';
 import { toMarkdown } from 'mdast-util-to-markdown';
 import Parser from 'rss-parser';
 import { isTextRailRelated } from '../helpers/isTextRailRelated';
-import type { CrawlerIngestContent } from '../types';
 import { assert } from '../util/assert';
 import { enrichNewsArticle } from './articleEnrichment';
 
@@ -35,8 +35,8 @@ const NEWS_ARTICLE_ENRICHMENT_FETCH_LIMIT = 20;
 
 export async function fetchRssFeeds(
   cutoffDateTime: DateTime,
-): Promise<CrawlerIngestContent[]> {
-  const results: CrawlerIngestContent[] = [];
+): Promise<IngestContent[]> {
+  const results: IngestContent[] = [];
   let remainingNewsArticleEnrichmentFetches =
     NEWS_ARTICLE_ENRICHMENT_FETCH_LIMIT;
 
@@ -88,7 +88,7 @@ export async function fetchRssFeeds(
 
         assert(link != null);
 
-        const content: CrawlerIngestContent = {
+        const content: IngestContent = {
           source: 'mastodon',
           accountName: title,
           createdAt,
@@ -154,7 +154,7 @@ export async function fetchRssFeeds(
           extensions: [gfmToMarkdown()],
         });
 
-        const content: CrawlerIngestContent = {
+        const content: IngestContent = {
           source: 'reddit',
           createdAt,
           subreddit,
@@ -215,7 +215,7 @@ export async function fetchRssFeeds(
         assert(createdAt != null);
         assert(link != null);
 
-        const content: CrawlerIngestContent = {
+        const content: IngestContent = {
           source: 'news-website',
           createdAt,
           title,
