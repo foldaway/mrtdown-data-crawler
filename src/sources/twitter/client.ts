@@ -15,6 +15,7 @@ export class TwitterClient {
 
   async recentSearch(
     query: string,
+    startTime?: string,
     tweetFields: TweetField[] = ['id', 'text', 'created_at'],
     userFields: UserFields[] = ['id', 'username'],
     expansions: Expansion[] = ['author_id'],
@@ -28,6 +29,9 @@ export class TwitterClient {
     url.searchParams.set('user.fields', userFields.join(','));
     url.searchParams.set('expansions', expansions.join(','));
     url.searchParams.set('sort_order', sortOrder);
+    if (startTime != null) {
+      url.searchParams.set('start_time', startTime);
+    }
 
     const response = await fetch(url, {
       headers: {

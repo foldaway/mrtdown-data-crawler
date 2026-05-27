@@ -6,17 +6,27 @@ import { TwitterClient } from './client';
 const SEARCH_QUERY =
   '(from:SBSTransit_Ltd OR from:SMRT_Singapore) -is:retweet (MRT OR LRT OR train OR track OR line OR fault)';
 
+function toTwitterSearchTimestamp(dateTime: DateTime): string {
+  return dateTime
+    .toUTC()
+    .set({ millisecond: 0 })
+    .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+}
+
 export async function fetchTwitterFeeds(
   twitterBearerToken: string,
   cutoffDateTime: DateTime,
 ): Promise<IngestContent[]> {
   const results: IngestContent[] = [];
   const twitterClient = new TwitterClient(twitterBearerToken);
+  const startTime = toTwitterSearchTimestamp(cutoffDateTime);
 
-  console.log(`[fetchTwitterFeeds] query=${SEARCH_QUERY}`);
+  console.log(
+    `[fetchTwitterFeeds] query=${SEARCH_QUERY} startTime=${startTime}`,
+  );
 
   try {
-    const response = await twitterClient.recentSearch(SEARCH_QUERY);
+    const response = await twitterClient.recentSearch(SEARCH_QUERY, startTime);
     console.log(
       '[fetchTwitterFeeds] response=',
       JSON.stringify(response, null, 2),
