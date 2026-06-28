@@ -23,7 +23,7 @@
     "production": {
       "vars": {
         "ENVIRONMENT": "production",
-      }
+      },"name": "mrtdown-data-crawler"
     },
     "development": {
       "vars": {
