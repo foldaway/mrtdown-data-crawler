@@ -18,7 +18,7 @@
     "@types/node": "26.0.0",
     "typescript": "^5.8.3",
     "vitest": "^4.1.9",
-    "wrangler": "^4.25.0"
+    "wrangler": "^4.105.0"
   },
   "dependencies": {
     "@mrtdown/ingest-contracts": "^2.0.0-alpha.27",
