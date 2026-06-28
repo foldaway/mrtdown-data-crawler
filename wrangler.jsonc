@@ -16,8 +16,7 @@
   ],
   "triggers": {
     "crons": [
-      "0,20,40 * * * *", // Very low frequency for Twitter
-      "0,10,20,30,40,50 * * * *" // Higher frequency for RSS
+      "0,5,10,15,20,25,30,35,40,45,50,55 * * * *"
     ]
   },
   "env": {

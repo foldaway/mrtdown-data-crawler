@@ -4,8 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "wrangler dev --test-scheduled",
-    "dev:invoke:rss": "curl 'http://localhost:8787/__scheduled?cron=0,10,20,30,40,50+*+*+*+*'",
-    "dev:invoke:twitter": "curl 'http://localhost:8787/__scheduled?cron=0,20,40+*+*+*+*'",
+    "dev:invoke": "curl 'http://localhost:8787/__scheduled?cron=0,5,10,15,20,25,30,35,40,45,50,55+%2A+%2A+%2A+%2A'",
     "typegen": "wrangler types",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

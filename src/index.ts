@@ -14,22 +14,20 @@ const app = {
     let content: IngestContent[] = [];
 
     switch (controller.cron) {
-      case '0,20,40 * * * *': {
-        const cutoffDateTime = DateTime.now().minus({ minutes: 20 });
-        content = await fetchTwitterFeeds(
-          env.TWITTER_BEARER_TOKEN,
-          cutoffDateTime,
+      case '0,5,10,15,20,25,30,35,40,45,50,55 * * * *': {
+        const cutoffDateTime = DateTime.now().minus({ minutes: 5 });
+        content.push(...(await fetchRssFeeds(cutoffDateTime)));
+        content.push(
+          ...(await fetchTwitterFeeds(
+            env.TWITTER_BEARER_TOKEN,
+            cutoffDateTime,
+          )),
         );
-        break;
-      }
-      case '0,10,20,30,40,50 * * * *': {
-        const cutoffDateTime = DateTime.now().minus({ minutes: 10 });
-        content = await fetchRssFeeds(cutoffDateTime);
         break;
       }
       case '': {
         // Testing from dashboard code editor, run both for testing purposes.
-        const cutoffDateTime = DateTime.now().minus({ minutes: 10 });
+        const cutoffDateTime = DateTime.now().minus({ minutes: 5 });
         try {
           content.push(...(await fetchRssFeeds(cutoffDateTime)));
         } catch (e) {
