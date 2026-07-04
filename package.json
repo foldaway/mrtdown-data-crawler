@@ -16,7 +16,7 @@
     "@biomejs/biome": "^1.9.4",
     "@types/luxon": "^3.7.2",
     "@types/node": "26.0.0",
-    "typescript": "^5.8.3",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.9",
     "wrangler": "^4.105.0"
   },
