@@ -21,7 +21,7 @@
     "wrangler": "^4.105.0"
   },
   "dependencies": {
-    "@mrtdown/ingest-contracts": "^2.0.0-alpha.27",
+    "@mrtdown/ingest-contracts": "^2.0.0-alpha.31",
     "@sentry/cloudflare": "^9.43.0",
     "hast-util-from-html": "^2.0.3",
     "luxon": "^3.7.2",
