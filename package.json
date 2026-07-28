@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@mrtdown/ingest-contracts": "^2.0.0-alpha.27",
-    "@sentry/cloudflare": "^9.43.0",
+    "@sentry/cloudflare": "^10.67.0",
     "hast-util-from-html": "^2.0.3",
     "luxon": "^3.7.2",
     "rss-parser": "^3.13.0"
