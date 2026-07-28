@@ -24,10 +24,7 @@
     "@mrtdown/ingest-contracts": "^2.0.0-alpha.27",
     "@sentry/cloudflare": "^9.43.0",
     "hast-util-from-html": "^2.0.3",
-    "hast-util-to-mdast": "^10.1.2",
     "luxon": "^3.7.2",
-    "mdast-util-gfm": "^3.1.0",
-    "mdast-util-to-markdown": "^2.1.2",
     "rss-parser": "^3.13.0"
   }
 }

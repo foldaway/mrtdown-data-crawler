@@ -9,7 +9,6 @@ The crawler currently gathers information from the following sources:
 
 *   **Twitter (via Twitter API)**: Monitors official accounts like `SBSTransit_Ltd` and `SMRT_Singapore` for updates on train service disruptions or related news.
 *   **Mastodon (via RSS)**: Collects alerts from the `ltatrainservicealerts` account on `mastodon.social`.
-*   **Reddit (via RSS)**: Scans the `/r/singapore` subreddit for posts containing keywords like "mrt" or "train."
 *   **News Websites (via RSS)**: Fetches news articles from prominent local news outlets such as `channelnewsasia.com` and `straitstimes.com`, filtering for rail-related content.
 
 ## Local Setup
