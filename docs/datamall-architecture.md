@@ -81,3 +81,18 @@ linked-file descriptor is not a universal DataMall API framework. Reuse bounded
 HTTP mechanics and snapshot persistence while keeping response parsing in the
 adapter. Do not force JSON endpoints through `value[0].Link` or put their parsing
 inside GTFS code. No direct-JSON collector is implemented yet.
+
+## Public publication and notification
+
+`publication.ts` copies only known GTFS datasets into the separate `GTFS_PUBLIC`
+bucket when explicitly enabled. It adds the actual Singapore Open Data Licence
+link, access-date attribution and an independent historical-snapshot notice at
+`/index.html`. An object hash identifies its public capture receipt. Conditional
+receipt creation prevents a repeated acquisition from replacing original
+provenance. The existing private capture schema remains unchanged.
+
+Schedule notification uses GitHub `gtfs_capture` repository dispatch after
+publication completes. A private pending/sent outbox is keyed by schedule hash;
+failed notifications are retried, and crashes can produce safe duplicate
+inspections. No full blobs, credentials or signed LTA links enter the dispatch.
+Alerts/trip updates do not dispatch to canonical ingestion.

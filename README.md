@@ -58,3 +58,24 @@ See [DataMall architecture](docs/datamall-architecture.md), [reliability and ret
 `mrtdown-data` still owns offline validation, canonical mappings and generated schedule publication. No automatic snapshot delivery is implemented.
 
 If a standalone collector was deployed, disable its collection/cron before enabling the crawler pipeline. Keep its R2 bucket and captures; using the same bucket preserves existing keys and provenance. Deleting the GitHub repo alone does not remove a deployed Worker.
+
+## Public GTFS handoff
+
+A separate `mrtdown-gtfs-public` R2 Standard bucket is bound as `GTFS_PUBLIC`.
+Attach a production custom domain such as `snapshots.mrtdown.org` manually.
+Publication and GitHub notifications are opt-in, currently disabled in both
+environments. Keep the original `SNAPSHOTS` bucket private.
+
+Set `GTFS_PUBLICATION_ENABLED` to `"true"` in production to publish only known
+LTA GTFS files, content-addressed capture JSON and `/index.html` attribution.
+After the receiver workflow is on `mrtdown-data`'s default branch and its
+`GTFS_SNAPSHOT_BASE_URL` repository variable names the active HTTPS domain,
+enable `GTFS_NOTIFICATION_ENABLED`. This reuses `GITHUB_ACCESS_TOKEN` to dispatch
+`gtfs_capture` with a schedule capture key. Alerts/trip updates are published
+but do not trigger canonical ingestion.
+
+Notification markers and pending retries stay private. On each enabled DataMall
+poll, up to 20 pending schedule hashes are retried. Repeated bytes share one
+public receipt and successful notification marker. At-least-once notifications
+may cause repeat inspections after a crash; there are no canonical writes.
+Neither domain attachment nor resource creation nor deployment is automated.
