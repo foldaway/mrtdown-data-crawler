@@ -91,9 +91,7 @@ export function buildRepositoryDispatchPayload(
   };
 }
 
-function stringifyRepositoryDispatchPayload(
-  content: IngestContent[],
-): string {
+function stringifyRepositoryDispatchPayload(content: IngestContent[]): string {
   const clientPayload = { content } satisfies IngestPayload;
   const validationResult = IngestPayloadSchema.safeParse(clientPayload);
 
@@ -111,9 +109,7 @@ function stringifyRepositoryDispatchPayload(
   return JSON.stringify(payload);
 }
 
-function findLargestArticleTextIndex(
-  content: IngestContent[],
-): number | null {
+function findLargestArticleTextIndex(content: IngestContent[]): number | null {
   let largestIndex: number | null = null;
   let largestLength = 0;
 

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Env } from '../env';
 import { collect } from './collector';
 import { poll } from './poll';
 
@@ -16,10 +17,7 @@ afterEach(() => {
 });
 describe('polling', () => {
   it('does not collect until explicitly enabled', async () => {
-    await poll(
-      { cron: env.SCHEDULE_CRON },
-      { ...env, COLLECTION_ENABLED: 'false' },
-    );
+    await poll('schedule', { ...env, COLLECTION_ENABLED: 'false' });
     expect(collect).not.toHaveBeenCalled();
   });
   it('isolates realtime feed failures and sanitizes logs', async () => {
@@ -32,7 +30,7 @@ describe('polling', () => {
         sha256: 'hash',
         byte_length: 5,
       } as Awaited<ReturnType<typeof collect>>);
-    await expect(poll({ cron: env.REALTIME_CRON }, env)).rejects.toThrow(
+    await expect(poll('realtime', env)).rejects.toThrow(
       'One or more DataMall captures failed',
     );
     expect(collect).toHaveBeenCalledTimes(2);
