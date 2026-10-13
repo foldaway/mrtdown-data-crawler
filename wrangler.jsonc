@@ -13,17 +13,49 @@
   },
   "compatibility_flags": ["nodejs_compat"],
   "triggers": {
-    "crons": ["0,5,10,15,20,25,30,35,40,45,50,55 * * * *"]
+    "crons": [
+      "0,5,10,15,20,25,30,35,40,45,50,55 * * * *",
+      "0 20 * * *",
+      "*/2 * * * *"
+    ]
   },
   "vars": {
-    "ENVIRONMENT": "development"
+    "ENVIRONMENT": "development",
+    "COLLECTION_ENABLED": "false",
+    "SCHEDULE_CRON": "0 20 * * *",
+    "REALTIME_CRON": "*/2 * * * *"
   },
   "env": {
     "production": {
       "name": "mrtdown-data-crawler",
       "vars": {
-        "ENVIRONMENT": "production"
+        "ENVIRONMENT": "production",
+        "COLLECTION_ENABLED": "false",
+        "SCHEDULE_CRON": "0 20 * * *",
+        "REALTIME_CRON": "*/2 * * * *"
+      },
+      "r2_buckets": [
+        {
+          "binding": "SNAPSHOTS",
+          "bucket_name": "mrtdown-datamall-snapshots"
+        }
+      ],
+      "triggers": {
+        "crons": [
+          "0,5,10,15,20,25,30,35,40,45,50,55 * * * *",
+          "0 20 * * *",
+          "*/2 * * * *"
+        ]
+      },
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA"
       }
     }
-  }
+  },
+  "r2_buckets": [
+    {
+      "binding": "SNAPSHOTS",
+      "bucket_name": "mrtdown-datamall-snapshots"
+    }
+  ]
 }
