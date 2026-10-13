@@ -8,7 +8,7 @@
     "typegen": "wrangler types",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "biome check src/datamall src/index.ts src/index.test.ts src/env.d.ts src/evidence package.json wrangler.jsonc",
+    "lint": "biome check src/storage src/datamall src/index.ts src/index.test.ts src/env.d.ts src/evidence package.json wrangler.jsonc",
     "check": "npm run typecheck && npm run lint && npm test",
     "build": "wrangler deploy --env=\"\" --dry-run",
     "build:production": "wrangler deploy --env production --dry-run"
@@ -20,13 +20,18 @@
     "@biomejs/biome": "^1.9.4",
     "@types/luxon": "^3.7.2",
     "@types/node": "26.0.0",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.3",
     "vitest": "^4.1.9",
     "wrangler": "^4.105.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1146.0",
     "@mrtdown/ingest-contracts": "^2.0.0-alpha.27",
     "@sentry/cloudflare": "^9.43.0",
+    "@sentry/node": "^11.4.0",
+    "@upstash/qstash": "^2.12.0",
     "hast-util-from-html": "^2.0.3",
     "luxon": "^3.7.2",
     "rss-parser": "^3.13.0"

@@ -1,3 +1,4 @@
+import type { Bucket } from '../storage/bucket';
 import type { Capture } from './snapshots/store';
 
 const licence =
@@ -11,8 +12,8 @@ const notice = `<!doctype html><html lang="en"><meta charset="utf-8"><title>MRTD
 
 export async function publishCapture(
   capture: Capture,
-  archive: R2Bucket,
-  publicBucket: R2Bucket,
+  archive: Bucket,
+  publicBucket: Bucket,
 ): Promise<string> {
   const kind = capture.feed_kind as keyof typeof sources;
   const endpoint = sources[kind];
@@ -70,7 +71,7 @@ export async function publishCapture(
 }
 
 export async function flushScheduleNotifications(
-  archive: R2Bucket,
+  archive: Bucket,
   githubToken: string,
   fetcher: typeof fetch = fetch,
 ): Promise<void> {
