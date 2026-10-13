@@ -13,7 +13,7 @@ function status(error: unknown): number | undefined {
     ?.httpStatusCode;
 }
 
-/** Keep R2 key layout and conditional receipt creation identical on Node. */
+/** Keep snapshot key layout and conditional receipt creation identical on Node. */
 export function s3Bucket(
   client: Pick<S3Client, 'send'>,
   bucket: string,
