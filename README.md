@@ -1,49 +1,60 @@
-# mrtdown-data-crawler
-Scripts to crawl for mrtdown-data
+# MRTDown Data Crawler
 
-## Overview
-This project contains Cloudflare Worker scripts designed to crawl various online sources for information related to MRT/LRT (Mass Rapid Transit/Light Rail Transit) train services, specifically focusing on Singapore. The collected data is then dispatched to a GitHub repository for further processing.
+Cloudflare Worker with two acquisition pipelines:
 
-## Data Sources
-The crawler currently gathers information from the following sources:
+- Evidence: official X accounts, Mastodon RSS and rail-related news → GitHub repository dispatch to `mrtdown-data`, every five minutes.
+- DataMall: original GTFS schedule ZIP and realtime protobuf files → private R2 snapshots. Collection is disabled by default.
 
-*   **Twitter (via Twitter API)**: Monitors official accounts like `SBSTransit_Ltd` and `SMRT_Singapore` for updates on train service disruptions or related news.
-*   **Mastodon (via RSS)**: Collects alerts from the `ltatrainservicealerts` account on `mastodon.social`.
-*   **News Websites (via RSS)**: Fetches news articles from prominent local news outlets such as `channelnewsasia.com` and `straitstimes.com`, filtering for rail-related content.
+The former standalone `mrtdown-datamall-collector` implementation now lives in `src/datamall/`. No separate collector Worker is needed.
 
-## Local Setup
-To set up and run this project locally, follow these steps:
+## Setup and checks
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/foldaway/mrtdown-data-crawler.git
-    cd mrtdown-data-crawler
-    ```
+```sh
+npm ci
+npm run typegen
+npm run check
+npm run build
+npm run build:production
+npm run dev
+```
 
-2.  **Install dependencies:**
-    This project uses Node.js and `npm`.
-    ```bash
-    npm install
-    ```
+Use Node 26. Existing source behavior remains in `src/evidence/index.ts`; `src/index.ts` routes scheduled invocations and wraps both pipelines with Sentry.
+The lint command covers the migrated pipeline, entry points and changed configuration; legacy source formatting is outside this integration's scope.
 
-3.  **Configure Environment Variables:**
-    The project requires the following environment variables, typically set in a `.env` file for local development or as secrets in your Cloudflare Worker environment:
+## Configuration
 
-    *   `TWITTER_BEARER_TOKEN`: Your Bearer Token for accessing the Twitter API.
-    *   `GITHUB_ACCESS_TOKEN`: A GitHub Fine-Grained Personal Access Token with Repository -> Contents (write) scope to dispatch events to the `foldaway/mrtdown-data` repository.
+Use ignored `.dev.vars` locally and Worker secrets in production:
 
-    Create a `.dev.vars` file in the root of the project:
-    ```
-    TWITTER_BEARER_TOKEN="YOUR_TWITTER_BEARER_TOKEN"
-    GITHUB_ACCESS_TOKEN="YOUR_GITHUB_ACCESS_TOKEN"
-    ```
+- `TWITTER_BEARER_TOKEN`: official-account X API access.
+- `GITHUB_ACCESS_TOKEN`: repository dispatch access to `foldaway/mrtdown-data`.
+- `SENTRY_DSN`: existing monitoring configuration.
+- `LTA_DATAMALL_ACCOUNT_KEY`: DataMall API access, required only when collection is enabled.
 
-4.  **Running Locally (Development):**
-    You can test the Cloudflare Worker locally using `wrangler`:
-    ```bash
-    npm run dev
-    ```
-    This will start a local development server. You can then trigger the scheduled function manually or inspect logs.
+Create the private R2 bucket `mrtdown-datamall-snapshots` manually. Both default and production Wrangler environments bind it as `SNAPSHOTS`.
+Set the DataMall secret on the crawler Worker; secrets on a deleted collector Worker do not transfer automatically.
 
-5.  **Deployment:**
-    For deployment to Cloudflare Workers, you would typically use `wrangler publish`. Ensure your `wrangler.toml` is configured correctly for your Cloudflare account.
+```sh
+npx wrangler secret put LTA_DATAMALL_ACCOUNT_KEY --env production
+```
+
+Set `COLLECTION_ENABLED` to `"true"` in the environment you deploy, then regenerate types and run checks.
+Deploy production deliberately with `npx wrangler deploy --env production`.
+No command above provisions a bucket or deploys automatically.
+
+## Polling
+
+| Pipeline | Cron (UTC) |
+| --- | --- |
+| Existing evidence | `0,5,10,15,20,25,30,35,40,45,50,55 * * * *` |
+| DataMall schedule | `0 20 * * *` (04:00 Singapore) |
+| DataMall alerts and trip updates | `*/2 * * * *` |
+
+These are polling choices, not provider publication guarantees. Dedicated triggers isolate evidence and dataset failures; consolidation does not reduce cron slots automatically.
+`npm run dev:invoke` invokes evidence. To test DataMall locally, pass the matching cron to Wrangler's `/__scheduled` URL. Local R2 is simulated; enabling collection still makes real upstream calls.
+
+## Snapshot handoff and cutover
+
+See [DataMall architecture](docs/datamall-architecture.md), [reliability and retention](docs/datamall-reliability.md), [security](docs/datamall-security.md) and [references](docs/datamall-references.md).
+`mrtdown-data` still owns offline validation, canonical mappings and generated schedule publication. No automatic snapshot delivery is implemented.
+
+If a standalone collector was deployed, disable its collection/cron before enabling the crawler pipeline. Keep its R2 bucket and captures; using the same bucket preserves existing keys and provenance. Deleting the GitHub repo alone does not remove a deployed Worker.

@@ -1,0 +1,83 @@
+# Architecture
+
+The crawler DataMall pipeline owns authenticated DataMall acquisition and private R2 retention.
+`mrtdown-data` owns offline inspection, reviewed mappings and generated schedules;
+`mrtdown-site` consumes the generated artifact. No downstream webhook or live
+arrivals runtime is implemented here.
+
+## Acquisition
+
+For each discriminated feed (`schedule`, `service_alerts`, `trip_updates`), request
+its documented DataMall endpoint with `AccountKey`, read the JSON
+`value[0].Link`, and immediately download original bytes without that header.
+The API guide defines `Link` and its 15-minute lifetime; the generic DataMall
+`value` response envelope still needs confirming on the first authorized GTFS
+request. A missing/malformed envelope fails closed.
+
+Only HTTPS downloads from the guide's
+`dmprod-datasets.s3.ap-southeast-1.amazonaws.com` host are accepted. Redirects
+are rejected. Every request has a 30-second timeout; link responses are bounded
+to 64 KiB and files to 32 MiB. The fixed file bound can be changed in code after
+measuring real schedule archives.
+
+## Storage and handoff
+
+- `blobs/<feed_kind>/<sha256>.zip|pb`: content-addressed original bytes.
+- `captures/<feed_kind>/<retrieved_at>/<capture_id>.json`: successful acquisition
+  metadata, written only after the blob is stored.
+
+Capture schema version 1 includes source endpoint, feed kind, `retrieved_at`,
+SHA-256, byte length, immutable `archive_ref` (a key within the private bucket),
+LTA attribution, licence reference and an explicit pending rights review state.
+Keys and temporary signed links never enter metadata or logs. Feed kind remains
+explicit even when a realtime feed has zero entities.
+
+This raw collector does not parse protobuf headers or timetable files.
+`provider_timestamp` is null, meaning **not extracted**, not absent at source.
+The offline inspector must extract provider timestamps from retained bytes
+before interpreting source recency or ordering alerts. Schedule ZIP signature
+checking is only a transport sanity check; nonempty realtime bodies are retained
+without semantic validation. A valid zero-entity protobuf is retained; a
+zero-byte HTTP download is rejected.
+
+An authorized downstream acquisition step lists successful capture records,
+selects a specific record (acquisition order does not establish source version),
+and retrieves its blob using R2 tooling. Materialize the JSON and bytes locally
+and verify the digest before passing them to `mrtdown-data`. No public snapshot
+proxy, canonical-data writing, protobuf normalization or ordered alert delivery
+is introduced.
+
+## Module ownership
+
+| Module | Responsibility |
+| --- | --- |
+| `src/datamall/transport/http.ts` | Bounded requests, retry policy, redirect restrictions and bounded body reads |
+| `src/datamall/transport/client.ts` | Authenticated **link-based** DataMall acquisition, temporary URL validation and credential-free file download |
+| `src/datamall/datasets/types.ts` | Small descriptor for currently supported linked-file datasets |
+| `src/datamall/datasets/gtfs.ts` | GTFS endpoint names, identity, allowed download hosts, size limits, extensions and transport sanity checks |
+| `src/datamall/snapshots/store.ts` | SHA-256, original-byte deduplication, compatible provenance and blob-before-record persistence |
+| `src/datamall/collector.ts` | Acquisition → dataset validation → snapshot storage |
+| `src/datamall/poll.ts` | Cron selection, independent collection, sanitized logs and aggregate failure |
+| `src/index.ts` | Shared Worker scheduled routing and Sentry wrapper |
+
+GTFS checks and extensions do not belong in the reusable DataMall client or
+snapshot writer. The existing `feed_kind` JSON field remains unchanged; its
+value comes from the dataset descriptor and need not identify a GTFS feed.
+Tests remain alongside their responsibilities; `collector.test.ts` also retains
+end-to-end mocked acquisition/persistence checks.
+
+## Adding a dataset
+
+For another documented **linked-file** DataMall dataset, add a descriptor in
+`src/datamall/datasets/` with a unique stable kind, endpoint path, archive extension,
+reviewed download-host allowlist, byte limit and dataset-specific validation.
+Add mocked examples, then explicitly select it in `poll.ts` and configure its
+cadence in Wrangler if needed. Regenerate environment types after configuration
+changes. Confirm attribution/rights before collection or publication.
+
+Some DataMall endpoints return JSON records directly rather than a temporary
+file link. Those need a separate acquisition adapter when implemented; the
+linked-file descriptor is not a universal DataMall API framework. Reuse bounded
+HTTP mechanics and snapshot persistence while keeping response parsing in the
+adapter. Do not force JSON endpoints through `value[0].Link` or put their parsing
+inside GTFS code. No direct-JSON collector is implemented yet.
