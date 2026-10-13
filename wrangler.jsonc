@@ -30,7 +30,7 @@
       "name": "mrtdown-data-crawler",
       "vars": {
         "ENVIRONMENT": "production",
-        "COLLECTION_ENABLED": "false",
+        "COLLECTION_ENABLED": "true",
         "SCHEDULE_CRON": "0 20 * * *",
         "REALTIME_CRON": "*/2 * * * *"
       },
