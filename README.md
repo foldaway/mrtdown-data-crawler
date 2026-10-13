@@ -1,81 +1,62 @@
-# MRTDown Data Crawler
+# mrtdown-data-crawler
 
-Cloudflare Worker with two acquisition pipelines:
+MRTDown evidence and DataMall acquisition on Node.js, packaged for Fly.io and
+scheduled through Upstash QStash. R2 remains the private archive and public
+snapshot store; `mrtdown-data` receives the existing GitHub dispatch contracts.
 
-- Evidence: official X accounts, Mastodon RSS and rail-related news → GitHub repository dispatch to `mrtdown-data`, every five minutes.
-- DataMall: original GTFS schedule ZIP and realtime protobuf files → private R2 snapshots. Collection is disabled by default.
+The Fly migration is prepared locally. Provisioning and production cutover are
+separate operator steps; see [the setup guide](docs/fly-setup.md).
 
-The former standalone `mrtdown-datamall-collector` implementation now lives in `src/datamall/`. No separate collector Worker is needed.
+## Jobs
 
-## Setup and checks
+| Signed endpoint | Cadence (UTC) | Purpose |
+| --- | --- | --- |
+| `POST /internal/jobs/evidence` | Every five minutes | Official X accounts, Mastodon RSS and rail-related news → `ingest` dispatch |
+| `POST /internal/jobs/realtime` | Every five minutes | LTA train service alerts and trip updates → R2 |
+| `POST /internal/jobs/schedule` | `0 20 * * *` (04:00 Singapore daily) | LTA train schedule ZIP → R2 |
+
+QStash signs each request. The service verifies the raw body and configured
+public destination URL, waits for collection, then returns success or a retryable
+failure. Job failures do not replay unrelated jobs. `GET /healthz` checks the
+process without contacting upstream services. Schedule provisioning owns three
+crawler-specific IDs and does not change the site's schedules.
+
+## Local development
+
+Node 24 or newer is required.
 
 ```sh
 npm ci
-npm run typegen
+cp .env.example .env
+npm run dev
+curl http://localhost:3000/healthz
 npm run check
 npm run build
-npm run build:production
-npm run dev
 ```
 
-Use Node 26. Existing source behavior remains in `src/evidence/index.ts`; `src/index.ts` routes scheduled invocations and wraps both pipelines with Sentry.
-The lint command covers the migrated pipeline, entry points and changed configuration; legacy source formatting is outside this integration's scope.
-
-## Configuration
-
-Use ignored `.dev.vars` locally and Worker secrets in production:
-
-- `TWITTER_BEARER_TOKEN`: official-account X API access.
-- `GITHUB_ACCESS_TOKEN`: repository dispatch access to `foldaway/mrtdown-data`.
-- `SENTRY_DSN`: existing monitoring configuration.
-- `LTA_DATAMALL_ACCOUNT_KEY`: DataMall API access, required only when collection is enabled.
-
-Create the private R2 bucket `mrtdown-datamall-snapshots` manually. Both default and production Wrangler environments bind it as `SNAPSHOTS`.
-Set the DataMall secret on the crawler Worker; secrets on a deleted collector Worker do not transfer automatically.
+The example configuration disables collection. Signing is always enforced;
+there is no public unauthenticated job route or development bypass. Use QStash
+with an HTTPS development tunnel and set `CRAWLER_ROOT_URL` to that exact origin
+for real local job checks. Use separate test R2 buckets and disable publication
+and notifications when exercising real providers.
 
 ```sh
-npx wrangler secret put LTA_DATAMALL_ACCOUNT_KEY --env production
+CRAWLER_ROOT_URL=https://mrtdown-data-crawler.fly.dev npm run qstash:schedules:sync -- --dry-run
 ```
 
-Set `COLLECTION_ENABLED` to `"true"` in the environment you deploy, then regenerate types and run checks.
-Deploy production deliberately with `npx wrangler deploy --env production`.
-No command above provisions a bucket or deploys automatically.
+The dry run requires no credentials and makes no network calls. `npm start`
+runs the built service. Docker builds use Node 24, production dependencies and
+an unprivileged user.
 
-## Polling
+## Module map
 
-| Pipeline | Cron (UTC) |
-| --- | --- |
-| Existing evidence | `0,5,10,15,20,25,30,35,40,45,50,55 * * * *` |
-| DataMall schedule | `0 20 * * *` (04:00 Singapore) |
-| DataMall alerts and trip updates | `0,5,10,15,20,25,30,35,40,45,50,55 * * * *` |
+- `src/runtime`: configuration, signed request handling, job selection.
+- `src/storage`: object-store contract and R2 S3 adapter.
+- `src/evidence`: source collection and existing GitHub ingest dispatch.
+- `src/sources`: RSS, X and bounded article enrichment.
+- `src/datamall`: linked-file acquisition, immutable snapshots, publication and notification retries.
+- `scripts/qstash-schedules.ts`: idempotent CI-owned schedule provisioning.
 
-These are polling choices, not provider publication guarantees. The original five-minute evidence trigger also collects GTFS realtime feeds. Its 20:00 UTC run additionally collects the schedule feed. Pipelines run independently and aggregate failures; no new trigger is registered.
-`npm run dev:invoke` invokes evidence. The same invocation also polls DataMall when collection is enabled. Local R2 is simulated; enabling collection still makes real upstream calls.
-
-## Snapshot handoff and cutover
-
-See [DataMall architecture](docs/datamall-architecture.md), [reliability and retention](docs/datamall-reliability.md), [security](docs/datamall-security.md) and [references](docs/datamall-references.md).
-`mrtdown-data` still owns offline validation, canonical mappings and generated schedule publication. No automatic snapshot delivery is implemented.
-
-If a standalone collector was deployed, disable its collection/cron before enabling the crawler pipeline. Keep its R2 bucket and captures; using the same bucket preserves existing keys and provenance. Deleting the GitHub repo alone does not remove a deployed Worker.
-
-## Public GTFS handoff
-
-A separate `mrtdown-public-snapshots` R2 Standard bucket is bound as `GTFS_PUBLIC`.
-Attach a production custom domain such as `sources.mrtdown.org` manually.
-Publication and GitHub notifications are opt-in, currently disabled in both
-environments. Keep the original `SNAPSHOTS` bucket private.
-
-Set `GTFS_PUBLICATION_ENABLED` to `"true"` in production to publish only known
-LTA GTFS files, content-addressed capture JSON and `/index.html` attribution.
-After the receiver workflow is on `mrtdown-data`'s default branch and its
-`GTFS_SNAPSHOT_BASE_URL` repository variable names the active HTTPS domain,
-enable `GTFS_NOTIFICATION_ENABLED`. This reuses `GITHUB_ACCESS_TOKEN` to dispatch
-`gtfs_capture` with a schedule capture key. Alerts/trip updates are published
-but do not trigger canonical ingestion.
-
-Notification markers and pending retries stay private. On each enabled DataMall
-poll, up to 20 pending schedule hashes are retried. Repeated bytes share one
-public receipt and successful notification marker. At-least-once notifications
-may cause repeat inspections after a crash; there are no canonical writes.
-Neither domain attachment nor resource creation nor deployment is automated.
+See [DataMall architecture](docs/datamall-architecture.md),
+[reliability](docs/datamall-reliability.md), and
+[the public handoff](docs/datamall-architecture.md#public-publication-and-notification).

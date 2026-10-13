@@ -1,0 +1,43 @@
+app = 'mrtdown-data-crawler'
+primary_region = 'sin'
+kill_signal = 'SIGTERM'
+kill_timeout = 300
+
+[env]
+  NODE_ENV = 'production'
+  ENVIRONMENT = 'production'
+  PORT = '3000'
+  CRAWLER_ROOT_URL = 'https://mrtdown-data-crawler.fly.dev'
+  CRAWLER_ENABLED = 'false'
+  COLLECTION_ENABLED = 'true'
+  GTFS_PUBLICATION_ENABLED = 'true'
+  GTFS_NOTIFICATION_ENABLED = 'false'
+  R2_ACCOUNT_ID = 'd6ae1f1fb76c9d0c9ebc8b0fd955f9d8'
+  R2_PRIVATE_BUCKET = 'mrtdown-datamall-snapshots'
+  R2_PUBLIC_BUCKET = 'mrtdown-public-snapshots'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = 'requests'
+    soft_limit = 4
+    hard_limit = 8
+
+  [http_service.http_options]
+    idle_timeout = 660
+
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '15s'
+    method = 'GET'
+    path = '/healthz'
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'

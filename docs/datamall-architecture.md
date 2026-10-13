@@ -1,8 +1,8 @@
 # Architecture
 
-The crawler DataMall pipeline owns authenticated DataMall acquisition and private R2 retention.
+The crawler DataMall pipeline owns authenticated DataMall acquisition and private R2 retention through the S3 API.
 `mrtdown-data` owns offline inspection, reviewed mappings and generated schedules;
-`mrtdown-site` consumes the generated artifact. No downstream webhook or live
+`mrtdown-site` consumes the generated artifact. The crawler dispatches public schedule receipts for offline inspection; no live
 arrivals runtime is implemented here.
 
 ## Acquisition
@@ -40,12 +40,9 @@ checking is only a transport sanity check; nonempty realtime bodies are retained
 without semantic validation. A valid zero-entity protobuf is retained; a
 zero-byte HTTP download is rejected.
 
-An authorized downstream acquisition step lists successful capture records,
-selects a specific record (acquisition order does not establish source version),
-and retrieves its blob using R2 tooling. Materialize the JSON and bytes locally
-and verify the digest before passing them to `mrtdown-data`. No public snapshot
-proxy, canonical-data writing, protobuf normalization or ordered alert delivery
-is introduced.
+Public publication and notification retry behavior is described in
+the public publication section below. The private archive stays private;
+only allowlisted attributed GTFS captures are copied into the public bucket.
 
 ## Module ownership
 
@@ -57,8 +54,8 @@ is introduced.
 | `src/datamall/datasets/gtfs.ts` | GTFS endpoint names, identity, allowed download hosts, size limits, extensions and transport sanity checks |
 | `src/datamall/snapshots/store.ts` | SHA-256, original-byte deduplication, compatible provenance and blob-before-record persistence |
 | `src/datamall/collector.ts` | Acquisition → dataset validation → snapshot storage |
-| `src/datamall/poll.ts` | Cron selection, independent collection, sanitized logs and aggregate failure |
-| `src/index.ts` | Shared Worker scheduled routing and Sentry wrapper |
+| `src/datamall/poll.ts` | Feed selection, independent collection, sanitized logs and aggregate failure |
+| `src/index.ts` | Node HTTP server and sanitized Sentry reporting |
 
 GTFS checks and extensions do not belong in the reusable DataMall client or
 snapshot writer. The existing `feed_kind` JSON field remains unchanged; its
@@ -72,8 +69,7 @@ For another documented **linked-file** DataMall dataset, add a descriptor in
 `src/datamall/datasets/` with a unique stable kind, endpoint path, archive extension,
 reviewed download-host allowlist, byte limit and dataset-specific validation.
 Add mocked examples, then explicitly select it in `poll.ts` and configure its
-cadence in Wrangler if needed. Regenerate environment types after configuration
-changes. Confirm attribution/rights before collection or publication.
+cadence in the QStash provisioning script if needed. Update typed runtime configuration with configuration changes. Confirm attribution/rights before collection or publication.
 
 Some DataMall endpoints return JSON records directly rather than a temporary
 file link. Those need a separate acquisition adapter when implemented; the

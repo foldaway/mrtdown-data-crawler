@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lint": "biome check src scripts package.json tsconfig.json",
-    "check": "npm run typecheck && npm run lint && npm test"
+    "check": "npm run typecheck && npm run lint && npm test",
+    "qstash:schedules:sync": "tsx scripts/qstash-schedules.ts"
   },
   "author": "",
   "license": "MIT",
