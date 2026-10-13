@@ -1,0 +1,61 @@
+name: Validate and deploy crawler
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - name: Inspect managed schedules without credentials
+        run: npm run qstash:schedules:sync -- --dry-run
+        env:
+          CRAWLER_ROOT_URL: https://mrtdown-data-crawler.fly.dev
+      - name: Build production container
+        run: docker build -t mrtdown-data-crawler:test .
+
+  deploy:
+    needs: validate
+    if: github.ref == 'refs/heads/main' && vars.CRAWLER_FLY_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: crawler-production-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1
+      - name: Deploy Fly service
+        run: >-
+          flyctl deploy --config fly.production.toml --local-only --ha=false
+          --image-label=${{ github.sha }} --env GIT_SHA=${{ github.sha }}
+          --env CRAWLER_ENABLED=$CRAWLER_ENABLED
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          CRAWLER_ENABLED: ${{ vars.CRAWLER_ENABLED || 'false' }}
+      - name: Sync production QStash schedules
+        if: vars.CRAWLER_ENABLED == 'true' && vars.CRAWLER_SCHEDULES_ENABLED == 'true'
+        run: npm run qstash:schedules:sync
+        env:
+          CRAWLER_ROOT_URL: https://mrtdown-data-crawler.fly.dev
+          QSTASH_URL: ${{ secrets.QSTASH_URL }}
+          QSTASH_TOKEN: ${{ secrets.QSTASH_TOKEN }}

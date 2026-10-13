@@ -2,16 +2,17 @@
 
 Network/timeout failures and HTTP 429/5xx retry up to three attempts with bounded
 250/500 ms backoff. Other HTTP errors fail immediately. A signed link or body
-failure fails the poll; the next cron obtains a new link. Storage failures are
-not retried in-process. Feed failures are isolated and produce only sanitized
+failure fails the poll; the next scheduled job obtains a new link. The S3 SDK makes at most three attempts per storage operation with bounded
+connection/request timeouts. Feed failures are isolated and produce only sanitized
 success/failure logs. After all selected feeds finish, any failure causes a
-sanitized scheduled-handler error so Cloudflare records the run as failed.
-Configure Cloudflare log alerts operationally.
+sanitized error and an HTTP 500 so QStash retries the job. Configure Fly/Sentry
+alerts and monitor QStash delivery failures/DLQ. A new attempt obtains fresh
+DataMall links rather than persisting their short-lived URLs.
 
 Write the blob first, then its immutable capture record. Only complete capture
 records are successful acquisitions. Failed polls leave prior records intact.
 Failure between writes can leave an unreferenced blob, never a promoted capture.
-There is no mutable latest pointer: concurrent cron invocations may produce
+There is no mutable latest pointer: concurrent job invocations may produce
 multiple records for the same bytes, and racing writes to a hash key contain
 identical content. Repeated captures are preserved, deduplicating only bytes.
 No source-version or lifecycle ordering is inferred from acquisition time.
