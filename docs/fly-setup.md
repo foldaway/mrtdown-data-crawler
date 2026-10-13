@@ -21,18 +21,32 @@ secrets. Use the existing Upstash account; these credentials must belong to the
 same QStash region as the signing keys below. Set repository variable
 `CRAWLER_FLY_DEPLOY_ENABLED=true` only when the app is ready for CI deployment.
 
-Create R2 S3 credentials granting Object Read & Write to **only** these existing
-buckets:
+Create two Tigris buckets through Fly/Tigris, keeping the archive private and
+making only the snapshot bucket public. The prepared names are
+`mrtdown-datamall-snapshots` and `mrtdown-public-snapshots`; if a name is unavailable,
+update the corresponding `*_S3_BUCKET` variable before deployment. No buckets
+have been created by this migration.
 
-- `mrtdown-datamall-snapshots` (private archive and notification state).
-- `mrtdown-public-snapshots` (public snapshots on `sources.mrtdown.org`).
+Each bucket has its **own** access key ID and secret. Import the private pair as
+`SNAPSHOTS_S3_ACCESS_KEY_ID` / `SNAPSHOTS_S3_SECRET_ACCESS_KEY` and the public pair as
+`GTFS_PUBLIC_S3_ACCESS_KEY_ID` / `GTFS_PUBLIC_S3_SECRET_ACCESS_KEY`. The runtime
+constructs separate S3 clients; it never uses shared `AWS_ACCESS_KEY_ID` defaults
+or falls back to the other bucket's credentials. Both endpoints default to
+`https://t3.storage.dev`, with region `auto`, and can be configured independently.
 
-The S3 adapter preserves all existing keys, metadata and conditional receipt
-creation. There is no bucket copy or domain change. It needs list/get/head/put
-and delete access for the private pending notification queue.
-[Cloudflare's S3 setup](https://developers.cloudflare.com/r2/examples/aws/aws-sdk-js-v3/)
-explains credential creation. Existing Worker secrets cannot be read back;
-retrieve them from your original secret store.
+`fly storage create` may automatically set generic `AWS_*` secrets when run in an
+app context. Creating a second bucket can replace those generic values. Save each
+credential pair when created and map it to the distinct names above; those
+provider-generated generic names are deliberately unused by this application.
+Private credentials need list/get/head/put/delete for archive and notification
+state; public credentials need head/get/put for publication. Keep each scoped to
+its own bucket.
+[Fly's Tigris guide](https://fly.io/docs/tigris/) documents bucket creation,
+private/public visibility, per-bucket credentials and the S3 endpoint.
+
+The adapter preserves all object keys, capture records, content types and
+conditional receipt creation. Existing Worker secrets cannot be read back;
+retrieve producer keys from your original secret store.
 
 Install these **Fly runtime secrets**, using `flyctl secrets import -a
 mrtdown-data-crawler` from a protected local file or password-manager output:
@@ -40,14 +54,15 @@ mrtdown-data-crawler` from a protected local file or password-manager output:
 | Secret | Purpose |
 | --- | --- |
 | `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY` | Verify QStash requests and rotation |
-| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Access the two R2 buckets |
+| `SNAPSHOTS_S3_ACCESS_KEY_ID`, `SNAPSHOTS_S3_SECRET_ACCESS_KEY` | Private Tigris bucket only |
+| `GTFS_PUBLIC_S3_ACCESS_KEY_ID`, `GTFS_PUBLIC_S3_SECRET_ACCESS_KEY` | Public Tigris bucket only |
 | `GITHUB_ACCESS_TOKEN` | Existing `mrtdown-data` dispatch authorization |
 | `TWITTER_BEARER_TOKEN` | Existing X acquisition |
 | `LTA_DATAMALL_ACCOUNT_KEY` | Existing DataMall acquisition |
 | `SENTRY_DSN` | Optional error reporting |
 
 QStash provisioning credentials belong in GitHub, not in the runtime. Public
-configuration (R2 account/buckets, root URL and collection flags) is in the Fly
+configuration (independent S3 endpoints/regions/buckets, root URL and collection flags) is in the Fly
 config. `GIT_SHA` is supplied by CI for Sentry releases. The GitHub access token
 needs the same repository-dispatch permission as before.
 
@@ -77,10 +92,35 @@ window. Interrupted work returns no success acknowledgement and can be retried.
 [Fly configuration](https://fly.io/docs/reference/configuration/) documents these
 runtime settings.
 
-## 3. Cut over one producer at a time
+## 3. Copy existing data and prepare the public domain
+
+Inspect the two existing R2 buckets. If populated, copy every key to the matching
+Tigris bucket using an S3-compatible copy tool with separate named source and
+destination credentials (for example, two rclone remotes per bucket pair).
+Preserve `blobs/`, `captures/`, `notifications/pending/`, `notifications/sent/`
+and `index.html`, plus object content types. Do not expose the private archive
+or delete source objects. Compare key counts and verify sample blob SHA-256 and
+capture byte lengths; preserve original capture JSON unchanged. Retain the R2
+buckets through the rollback window. If both are empty, there is nothing to copy.
+
+Register `sources.mrtdown.org` as the public Tigris bucket's custom domain. Test
+copied objects through its direct public bucket URL first. Before changing DNS,
+stop the old crawler cron and perform a final copy of any intervening writes.
+Disconnect the domain from the R2 bucket and apply the CNAME target provided by
+Tigris, then verify HTTPS, `index.html`, capture JSON and matching blobs at the
+original `sources.mrtdown.org` URLs. Keep the receiver's
+`GTFS_SNAPSHOT_BASE_URL=https://sources.mrtdown.org`; no downstream code change is
+needed if the origin and paths stay the same.
+
+[Fly's public bucket/custom domain instructions](https://fly.io/docs/tigris/)
+describe registration and DNS. Domain migration is an operator action, not
+something the local branch has performed. Never move notification state into
+the public bucket.
+
+## 4. Cut over one producer at a time
 
 1. Remove the **old crawler cron** in Cloudflare; retain the Worker for rollback.
-   Do not delete its secrets or either R2 bucket. Removing one slot alone may
+   Do not delete its secrets or either original R2 bucket. Removing one slot alone may
    still leave the account above the Free-plan limit; confirm the API accepted
    the removal. This migration does not remove unrelated account triggers.
 2. Set repository variable `CRAWLER_ENABLED=true` and dispatch the GitHub
@@ -113,15 +153,18 @@ schedules are never listed or deleted by provisioning.
 and [request signing](https://upstash.com/docs/qstash/features/security) describe
 these API contracts.
 
-## 4. Rollback
+## 5. Rollback
 
 Pause the three crawler schedules in QStash and wait for in-flight deliveries to
 finish (or cancel pending retries). Setting `CRAWLER_SCHEDULES_ENABLED=false`
 only skips future provisioning; it **does not pause existing schedules**.
 Deploy with `CRAWLER_ENABLED=false` to reject signed work with 503. Restore the
 old Worker cron only after Fly stops producing. The account's Free cron limit
-may prevent restoration until another slot is freed. Storage and downstream
-contracts remain compatible, so no data rollback is required.
+may prevent restoration until another slot is freed. Before returning to the old R2-backed Worker, copy new Tigris objects back into
+the matching R2 buckets (including private notification state), verify them,
+and restore `sources.mrtdown.org` to R2. Do not resume the old producer until the
+storage and public origin are ready. Object keys and downstream contracts remain
+compatible, but objects written only to Tigris are not automatically present in R2.
 
 QStash delivery and GitHub dispatch are at least once. A crash after dispatch can
 repeat evidence or inspection; the existing downstream deduplication/immutable

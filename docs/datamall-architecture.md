@@ -1,6 +1,6 @@
 # Architecture
 
-The crawler DataMall pipeline owns authenticated DataMall acquisition and private R2 retention through the S3 API.
+The crawler DataMall pipeline owns authenticated DataMall acquisition and private Tigris retention through the S3 API.
 `mrtdown-data` owns offline inspection, reviewed mappings and generated schedules;
 `mrtdown-site` consumes the generated artifact. The crawler dispatches public schedule receipts for offline inspection; no live
 arrivals runtime is implemented here.

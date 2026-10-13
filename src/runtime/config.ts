@@ -24,19 +24,36 @@ export function rootUrl(value: string): string {
   return url.origin;
 }
 
-export function createEnvironment(values: Variables): Env {
+type BucketPrefix = 'SNAPSHOTS_S3' | 'GTFS_PUBLIC_S3';
+
+function createBucket(values: Variables, prefix: BucketPrefix) {
+  const endpoint = required(values, `${prefix}_ENDPOINT`);
+  const url = new URL(endpoint);
+  if (
+    url.protocol !== 'https:' ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error(`${prefix}_ENDPOINT must use HTTPS without credentials`);
+  }
   const client = new S3Client({
-    region: 'auto',
-    endpoint: `https://${required(values, 'R2_ACCOUNT_ID')}.r2.cloudflarestorage.com`,
+    region: required(values, `${prefix}_REGION`),
+    endpoint,
     credentials: {
-      accessKeyId: required(values, 'R2_ACCESS_KEY_ID'),
-      secretAccessKey: required(values, 'R2_SECRET_ACCESS_KEY'),
+      accessKeyId: required(values, `${prefix}_ACCESS_KEY_ID`),
+      secretAccessKey: required(values, `${prefix}_SECRET_ACCESS_KEY`),
     },
     maxAttempts: 3,
     requestHandler: { connectionTimeout: 10_000, requestTimeout: 30_000 },
     requestChecksumCalculation: 'WHEN_REQUIRED',
     responseChecksumValidation: 'WHEN_REQUIRED',
   });
+  return s3Bucket(client, required(values, `${prefix}_BUCKET`));
+}
+
+export function createEnvironment(values: Variables): Env {
   return {
     TWITTER_BEARER_TOKEN: required(values, 'TWITTER_BEARER_TOKEN'),
     GITHUB_ACCESS_TOKEN: required(values, 'GITHUB_ACCESS_TOKEN'),
@@ -47,7 +64,7 @@ export function createEnvironment(values: Variables): Env {
     COLLECTION_ENABLED: values.COLLECTION_ENABLED ?? 'false',
     GTFS_PUBLICATION_ENABLED: values.GTFS_PUBLICATION_ENABLED ?? 'false',
     GTFS_NOTIFICATION_ENABLED: values.GTFS_NOTIFICATION_ENABLED ?? 'false',
-    SNAPSHOTS: s3Bucket(client, required(values, 'R2_PRIVATE_BUCKET')),
-    GTFS_PUBLIC: s3Bucket(client, required(values, 'R2_PUBLIC_BUCKET')),
+    SNAPSHOTS: createBucket(values, 'SNAPSHOTS_S3'),
+    GTFS_PUBLIC: createBucket(values, 'GTFS_PUBLIC_S3'),
   };
 }
