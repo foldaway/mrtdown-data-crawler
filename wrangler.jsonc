@@ -35,7 +35,7 @@
         "COLLECTION_ENABLED": "true",
         "SCHEDULE_CRON": "0 20 * * *",
         "REALTIME_CRON": "*/2 * * * *",
-        "GTFS_PUBLICATION_ENABLED": "false",
+        "GTFS_PUBLICATION_ENABLED": "true",
         "GTFS_NOTIFICATION_ENABLED": "false"
       },
       "r2_buckets": [
@@ -45,7 +45,7 @@
         },
         {
           "binding": "GTFS_PUBLIC",
-          "bucket_name": "mrtdown-gtfs-public"
+          "bucket_name": "mrtdown-public-snapshots"
         }
       ],
       "triggers": {
@@ -67,7 +67,7 @@
     },
     {
       "binding": "GTFS_PUBLIC",
-      "bucket_name": "mrtdown-gtfs-public"
+      "bucket_name": "mrtdown-public-snapshots"
     }
   ]
 }

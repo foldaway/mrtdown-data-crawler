@@ -61,8 +61,8 @@ If a standalone collector was deployed, disable its collection/cron before enabl
 
 ## Public GTFS handoff
 
-A separate `mrtdown-gtfs-public` R2 Standard bucket is bound as `GTFS_PUBLIC`.
-Attach a production custom domain such as `snapshots.mrtdown.org` manually.
+A separate `mrtdown-public-snapshots` R2 Standard bucket is bound as `GTFS_PUBLIC`.
+Attach a production custom domain such as `sources.mrtdown.org` manually.
 Publication and GitHub notifications are opt-in, currently disabled in both
 environments. Keep the original `SNAPSHOTS` bucket private.
 
