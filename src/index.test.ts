@@ -38,3 +38,21 @@ describe('scheduled routing', () => {
     },
   );
 });
+
+it('runs all due pipelines through one trigger and isolates failures', async () => {
+  vi.mocked(evidenceCrawler.scheduled).mockRejectedValueOnce(
+    new Error('evidence failure'),
+  );
+  await expect(
+    app.scheduled(
+      {
+        cron: '* * * * *',
+        scheduledTime: Date.parse('2026-10-12T20:00:00Z'),
+      } as ScheduledController,
+      env,
+      ctx,
+    ),
+  ).rejects.toThrow('pipelines failed');
+  expect(evidenceCrawler.scheduled).toHaveBeenCalledTimes(1);
+  expect(poll).toHaveBeenCalledTimes(2);
+});

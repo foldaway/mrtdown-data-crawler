@@ -49,7 +49,7 @@ No command above provisions a bucket or deploys automatically.
 | DataMall schedule | `0 20 * * *` (04:00 Singapore) |
 | DataMall alerts and trip updates | `*/2 * * * *` |
 
-These are polling choices, not provider publication guarantees. Dedicated triggers isolate evidence and dataset failures; consolidation does not reduce cron slots automatically.
+These are polling choices, not provider publication guarantees. One master trigger (`* * * * *`) selects due jobs using the scheduled UTC instant. Pipelines run independently and aggregate failures; only one account cron slot is used. The table lists logical job cadences, not separate registered triggers.
 `npm run dev:invoke` invokes evidence. To test DataMall locally, pass the matching cron to Wrangler's `/__scheduled` URL. Local R2 is simulated; enabling collection still makes real upstream calls.
 
 ## Snapshot handoff and cutover
