@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { Bucket } from '../storage/bucket';
 import { flushScheduleNotifications, publishCapture } from './publication';
 import type { Capture } from './snapshots/store';
 
@@ -43,7 +44,7 @@ function bucket() {
       }),
     ),
   };
-  return { objects, api, r2: api as unknown as R2Bucket };
+  return { objects, api, r2: api as unknown as Bucket };
 }
 describe('public GTFS handoff', () => {
   it('publishes an attributed immutable schedule receipt and sends one notification per hash', async () => {
