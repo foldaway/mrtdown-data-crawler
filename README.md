@@ -47,10 +47,10 @@ No command above provisions a bucket or deploys automatically.
 | --- | --- |
 | Existing evidence | `0,5,10,15,20,25,30,35,40,45,50,55 * * * *` |
 | DataMall schedule | `0 20 * * *` (04:00 Singapore) |
-| DataMall alerts and trip updates | `*/2 * * * *` |
+| DataMall alerts and trip updates | `0,5,10,15,20,25,30,35,40,45,50,55 * * * *` |
 
-These are polling choices, not provider publication guarantees. One master trigger (`* * * * *`) selects due jobs using the scheduled UTC instant. Pipelines run independently and aggregate failures; only one account cron slot is used. The table lists logical job cadences, not separate registered triggers.
-`npm run dev:invoke` invokes evidence. To test DataMall locally, pass the matching cron to Wrangler's `/__scheduled` URL. Local R2 is simulated; enabling collection still makes real upstream calls.
+These are polling choices, not provider publication guarantees. The original five-minute evidence trigger also collects GTFS realtime feeds. Its 20:00 UTC run additionally collects the schedule feed. Pipelines run independently and aggregate failures; no new trigger is registered.
+`npm run dev:invoke` invokes evidence. The same invocation also polls DataMall when collection is enabled. Local R2 is simulated; enabling collection still makes real upstream calls.
 
 ## Snapshot handoff and cutover
 

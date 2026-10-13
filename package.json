@@ -8,7 +8,7 @@
     "typegen": "wrangler types",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "biome check src/datamall src/scheduling.ts src/scheduling.test.ts src/index.ts src/index.test.ts src/env.d.ts src/evidence package.json wrangler.jsonc",
+    "lint": "biome check src/datamall src/index.ts src/index.test.ts src/env.d.ts src/evidence package.json wrangler.jsonc",
     "check": "npm run typecheck && npm run lint && npm test",
     "build": "wrangler deploy --env=\"\" --dry-run",
     "build:production": "wrangler deploy --env production --dry-run"

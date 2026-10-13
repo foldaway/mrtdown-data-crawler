@@ -1,7 +1,6 @@
 import * as Sentry from '@sentry/cloudflare';
 import { poll } from './datamall/poll';
 import { evidenceCrawler } from './evidence';
-import { EVIDENCE_CRON, MASTER_CRON, dueJobs } from './scheduling';
 
 export const app = {
   async scheduled(
@@ -9,28 +8,19 @@ export const app = {
     env: Env,
     ctx: ExecutionContext,
   ) {
-    if (controller.cron === MASTER_CRON) {
-      const due = dueJobs(controller.scheduledTime);
-      const tasks: Promise<void>[] = [];
-      const forCron = (cron: string) => ({ ...controller, cron });
-      if (due.evidence)
-        tasks.push(evidenceCrawler.scheduled(forCron(EVIDENCE_CRON), env, ctx));
-      if (due.schedule) tasks.push(poll(forCron(env.SCHEDULE_CRON), env));
-      if (due.realtime) tasks.push(poll(forCron(env.REALTIME_CRON), env));
-      const results = await Promise.allSettled(tasks);
-      if (results.some((result) => result.status === 'rejected')) {
-        throw new Error('One or more crawler pipelines failed');
-      }
-      return;
+    const tasks = [evidenceCrawler.scheduled(controller, env, ctx)];
+    tasks.push(poll({ cron: env.REALTIME_CRON }, env));
+
+    // The existing five-minute trigger includes 20:00 UTC (04:00 Singapore).
+    // Use the scheduled instant because Cloudflare may deliver the event late.
+    const scheduled = new Date(controller.scheduledTime);
+    if (scheduled.getUTCHours() === 20 && scheduled.getUTCMinutes() === 0) {
+      tasks.push(poll({ cron: env.SCHEDULE_CRON }, env));
     }
-    if (
-      controller.cron === env.SCHEDULE_CRON ||
-      controller.cron === env.REALTIME_CRON
-    ) {
-      await poll(controller, env);
-      return;
+    const results = await Promise.allSettled(tasks);
+    if (results.some((result) => result.status === 'rejected')) {
+      throw new Error('One or more crawler pipelines failed');
     }
-    await evidenceCrawler.scheduled(controller, env, ctx);
   },
 } satisfies ExportedHandler<Env>;
 

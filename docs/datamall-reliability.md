@@ -19,7 +19,7 @@ No source-version or lifecycle ordering is inferred from acquisition time.
 ## Retention
 
 No automatic deletion is enabled. Monitor R2 growth (two realtime feeds at a
-two-minute cadence create about 1,440 capture records per day). Before adding a
+five-minute cadence create about 576 capture records per day). Before adding a
 lifecycle policy, agree retention and applicable licence requirements; retain
 blobs used by reviewed downstream artifacts and all needed provenance. An
 operator can identify unreferenced blobs by comparing blob keys against all
