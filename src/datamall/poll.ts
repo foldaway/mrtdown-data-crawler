@@ -1,6 +1,7 @@
 import { collect } from './collector';
 import { gtfsDatasets } from './datasets/gtfs';
 import type { Dataset } from './datasets/types';
+import { flushScheduleNotifications, publishCapture } from './publication';
 
 export async function poll(
   controller: Pick<ScheduledController, 'cron'>,
@@ -33,6 +34,9 @@ export async function poll(
           env.LTA_DATAMALL_ACCOUNT_KEY,
           env.SNAPSHOTS,
         );
+        if (String(env.GTFS_PUBLICATION_ENABLED) === 'true') {
+          await publishCapture(capture, env.SNAPSHOTS, env.GTFS_PUBLIC);
+        }
         console.log(
           JSON.stringify({
             event: 'capture_success',
@@ -51,6 +55,12 @@ export async function poll(
       }
     }),
   );
+  if (String(env.GTFS_NOTIFICATION_ENABLED) === 'true') {
+    if (String(env.GTFS_PUBLICATION_ENABLED) !== 'true') {
+      throw new Error('Schedule notifications require public GTFS publication');
+    }
+    await flushScheduleNotifications(env.SNAPSHOTS, env.GITHUB_ACCESS_TOKEN);
+  }
   if (outcomes.some((succeeded) => !succeeded)) {
     throw new Error('One or more DataMall captures failed');
   }

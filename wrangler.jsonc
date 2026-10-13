@@ -23,7 +23,9 @@
     "ENVIRONMENT": "development",
     "COLLECTION_ENABLED": "false",
     "SCHEDULE_CRON": "0 20 * * *",
-    "REALTIME_CRON": "*/2 * * * *"
+    "REALTIME_CRON": "*/2 * * * *",
+    "GTFS_PUBLICATION_ENABLED": "false",
+    "GTFS_NOTIFICATION_ENABLED": "false"
   },
   "env": {
     "production": {
@@ -32,12 +34,18 @@
         "ENVIRONMENT": "production",
         "COLLECTION_ENABLED": "true",
         "SCHEDULE_CRON": "0 20 * * *",
-        "REALTIME_CRON": "*/2 * * * *"
+        "REALTIME_CRON": "*/2 * * * *",
+        "GTFS_PUBLICATION_ENABLED": "false",
+        "GTFS_NOTIFICATION_ENABLED": "false"
       },
       "r2_buckets": [
         {
           "binding": "SNAPSHOTS",
           "bucket_name": "mrtdown-datamall-snapshots"
+        },
+        {
+          "binding": "GTFS_PUBLIC",
+          "bucket_name": "mrtdown-gtfs-public"
         }
       ],
       "triggers": {
@@ -56,6 +64,10 @@
     {
       "binding": "SNAPSHOTS",
       "bucket_name": "mrtdown-datamall-snapshots"
+    },
+    {
+      "binding": "GTFS_PUBLIC",
+      "bucket_name": "mrtdown-gtfs-public"
     }
   ]
 }

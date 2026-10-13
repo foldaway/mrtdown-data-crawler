@@ -53,7 +53,7 @@ export async function archiveSnapshot(
     attribution: 'Land Transport Authority (LTA), Singapore; DataMall',
     rights_status: 'pending_review',
     licence_reference:
-      'https://datamall.lta.gov.sg/content/datamall/en/terms-and-conditions.html',
+      'https://datamall.lta.gov.sg/content/datamall/en/SingaporeOpenDataLicence.html',
   };
   if (!(await storage.head(archiveRef))) {
     await storage.put(archiveRef, bytes);
