@@ -145,3 +145,8 @@ dist
 
 .dev.vars
 .wrangler/
+
+# Node build artifacts and local secrets
+dist/
+.env.*
+!.env.example

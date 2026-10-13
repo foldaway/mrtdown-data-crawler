@@ -34,6 +34,7 @@ export class TwitterClient {
     }
 
     const response = await fetch(url, {
+      signal: AbortSignal.timeout(30_000),
       headers: {
         Authorization: `Bearer ${this.bearerToken}`,
         'User-Agent': 'User-Agent: curl/7.54.1',

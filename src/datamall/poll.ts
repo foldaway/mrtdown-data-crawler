@@ -1,12 +1,10 @@
+import type { Env } from '../env';
 import { collect } from './collector';
 import { gtfsDatasets } from './datasets/gtfs';
 import type { Dataset } from './datasets/types';
 import { flushScheduleNotifications, publishCapture } from './publication';
 
-export async function poll(
-  controller: Pick<ScheduledController, 'cron'>,
-  env: Env,
-) {
+export async function poll(kind: 'schedule' | 'realtime', env: Env) {
   if (String(env.COLLECTION_ENABLED) !== 'true') {
     return;
   }
@@ -16,9 +14,9 @@ export async function poll(
   }
 
   let datasets: Dataset[];
-  if (controller.cron === env.SCHEDULE_CRON) {
+  if (kind === 'schedule') {
     datasets = [gtfsDatasets.schedule];
-  } else if (controller.cron === env.REALTIME_CRON) {
+  } else if (kind === 'realtime') {
     datasets = [gtfsDatasets.service_alerts, gtfsDatasets.trip_updates];
   } else {
     console.error('Collection skipped: unrecognized cron');
