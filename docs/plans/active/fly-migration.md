@@ -32,3 +32,16 @@ Operator correction: both buckets now target Tigris. Each bucket has independent
 endpoint, region, bucket name and credentials; no generic AWS credential fallback.
 The setup guide covers copying R2 objects, moving the public domain, and copying
 new objects back before an R2 rollback. Updated checks: 56 deterministic tests.
+
+## Production cutover
+
+The operator provisioned secrets, Tigris buckets and the public domain, and
+disabled Cloudflare. PR #28 was rebase-merged to preserve focused commits.
+GitHub Actions deployed the disabled service, then enabled it and provisioned
+the three QStash schedules. Shared IPv4 ingress was added for public clients.
+
+The first live capture exposed lowercase `link` fields in DataMall GTFS
+responses; a tested compatibility fix was deployed through CI. Authenticated
+schedule/realtime smoke checks returned 204, and all three feeds were retained
+and publicly published. Public schedule ZIP bytes match capture SHA-256 and
+length. Schedule notifications are now enabled for downstream inspection.
