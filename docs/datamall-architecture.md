@@ -54,7 +54,7 @@ only allowlisted attributed GTFS captures are copied into the public bucket.
 | `src/datamall/snapshots/store.ts` | SHA-256, original-byte deduplication, compatible provenance and blob-before-record persistence |
 | `src/datamall/collector.ts` | Acquisition → dataset validation → snapshot storage |
 | `src/datamall/poll.ts` | Feed selection, independent collection, sanitized logs and aggregate failure |
-| `src/index.ts` | Node HTTP server and sanitized Sentry reporting |
+| `src/index.ts` | Hono Node adapter and sanitized Sentry reporting |
 
 GTFS checks and extensions do not belong in the reusable DataMall client or
 snapshot writer. The existing `feed_kind` JSON field remains unchanged; its

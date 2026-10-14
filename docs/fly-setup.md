@@ -2,7 +2,7 @@
 
 This guide prepares `mrtdown-data-crawler` as a separate Fly app in Singapore.
 No resources were provisioned as part of the local migration. The design follows
-`mrtdown-site`'s completed Fly migration, with a small Node HTTP service in place
+`mrtdown-site`'s completed Fly migration, with a small Hono service in place
 of its full application framework.
 
 ## 1. Prepare the app and credentials
