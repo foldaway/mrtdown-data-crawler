@@ -24,7 +24,7 @@ jobs:
       - name: Inspect managed schedules without credentials
         run: npm run qstash:schedules:sync -- --dry-run
         env:
-          CRAWLER_ROOT_URL: https://mrtdown-data-crawler.fly.dev
+          CRAWLER_ROOT_URL: https://crawler.mrtdown.org
       - name: Build production container
         run: docker build -t mrtdown-data-crawler:test .
 
@@ -56,6 +56,6 @@ jobs:
         if: vars.CRAWLER_ENABLED == 'true' && vars.CRAWLER_SCHEDULES_ENABLED == 'true'
         run: npm run qstash:schedules:sync
         env:
-          CRAWLER_ROOT_URL: https://mrtdown-data-crawler.fly.dev
+          CRAWLER_ROOT_URL: https://crawler.mrtdown.org
           QSTASH_URL: ${{ secrets.QSTASH_URL }}
           QSTASH_TOKEN: ${{ secrets.QSTASH_TOKEN }}

@@ -41,7 +41,7 @@ for real local job checks. Use separate test S3 buckets and disable publication
 and notifications when exercising real providers.
 
 ```sh
-CRAWLER_ROOT_URL=https://mrtdown-data-crawler.fly.dev npm run qstash:schedules:sync -- --dry-run
+CRAWLER_ROOT_URL=https://crawler.mrtdown.org npm run qstash:schedules:sync -- --dry-run
 ```
 
 The dry run requires no credentials and makes no network calls. `npm start`

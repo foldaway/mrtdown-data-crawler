@@ -9,9 +9,10 @@ of its full application framework.
 
 Sign in with `flyctl auth login`, create the `mrtdown-data-crawler` app in the
 same organization as the site, and allocate its public networking. The checked-in
-`fly.production.toml` assumes `https://mrtdown-data-crawler.fly.dev`; if the app
-name differs, update the app name, root URL, CI destinations and dry-run check
-together before deployment. Use `flyctl apps create` and `flyctl ips allocate-v6`
+`fly.production.toml` uses `https://crawler.mrtdown.org` for signed jobs.
+Register that domain with the Fly app and configure its DNS before deployment.
+If the hostname changes, update the root URL, CI destinations and dry-run check
+together. The underlying Fly app name can change without changing the public hostname. Use `flyctl apps create` and `flyctl ips allocate-v6`
 (and a shared IPv4 if needed by your setup). Do not use `fly launch` to overwrite
 the prepared configuration.
 
@@ -79,7 +80,7 @@ until the replacement has been checked.
 Push/review the migration and merge when ready. The GitHub workflow validates
 source, tests, schedule configuration and the production Docker image before
 calling Fly. The deployment uses `--ha=false`; keep one Machine and no local
-persistent volume. Confirm `https://mrtdown-data-crawler.fly.dev/healthz` is 200.
+persistent volume. Confirm `https://crawler.mrtdown.org/healthz` is 200.
 Unsigned POST requests to the three job endpoints must return 401.
 
 Fly is configured with `min_machines_running=0`, autostart and autostop.
