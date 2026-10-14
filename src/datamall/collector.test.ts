@@ -16,7 +16,7 @@ function harness() {
   const fetcher = vi.fn<typeof fetch>();
   fetcher.mockImplementation(async (url) =>
     String(url).includes('ltaodataservice')
-      ? Response.json({ value: [{ Link: link }] })
+      ? Response.json({ value: [{ timestamp: '2026-10-13T00:00:00Z', link }] })
       : new Response(new Uint8Array([0x50, 0x4b, 3, 4])),
   );
   let id = 0;
@@ -52,6 +52,19 @@ describe('collector', () => {
     ).toEqual(new Uint8Array([0x50, 0x4b, 3, 4]));
     expect(JSON.stringify([...h.objects])).not.toContain('dummy-key');
     expect(JSON.stringify([...h.objects])).not.toContain('secret=hidden');
+  });
+  it('rejects conflicting lowercase and legacy links before downloading', async () => {
+    const h = harness();
+    h.fetcher.mockResolvedValue(
+      Response.json({ value: [{ link, Link: 'https://example.test/other' }] }),
+    );
+    await expect(
+      collect(gtfsDatasets.schedule, 'dummy', h.storage, {
+        dependencies: h.dependencies,
+      }),
+    ).rejects.toThrow('Invalid DataMall link response');
+    expect(h.fetcher).toHaveBeenCalledTimes(1);
+    expect(h.objects.size).toBe(0);
   });
   it('deduplicates bytes but keeps every successful capture including empty realtime', async () => {
     const h = harness();

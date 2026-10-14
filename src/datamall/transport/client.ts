@@ -15,9 +15,18 @@ function parseDownloadLink(bytes: ArrayBuffer): string {
   let link: unknown;
   try {
     const payload = JSON.parse(new TextDecoder().decode(bytes)) as {
-      value?: { Link?: unknown }[];
+      value?: { link?: unknown; Link?: unknown }[];
     };
-    link = payload.value?.[0]?.Link;
+    const record = payload.value?.[0];
+    // Live GTFS responses use lowercase `link`; older linked datasets use `Link`.
+    if (
+      record?.link !== undefined &&
+      record.Link !== undefined &&
+      record.link !== record.Link
+    ) {
+      throw new Error('Conflicting DataMall links');
+    }
+    link = record?.link ?? record?.Link;
   } catch {
     throw new Error('Invalid DataMall link response');
   }

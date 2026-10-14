@@ -9,10 +9,9 @@ arrivals runtime is implemented here.
 
 For each discriminated feed (`schedule`, `service_alerts`, `trip_updates`), request
 its documented DataMall endpoint with `AccountKey`, read the JSON
-`value[0].Link`, and immediately download original bytes without that header.
-The API guide defines `Link` and its 15-minute lifetime; the generic DataMall
-`value` response envelope still needs confirming on the first authorized GTFS
-request. A missing/malformed envelope fails closed.
+`value[0].link` (with legacy `Link` supported), and immediately download original bytes without that header.
+The API guide defines `Link` and its 15-minute lifetime; the live GTFS API has been verified to return a `value` envelope with lowercase
+`link` and `timestamp` fields. A missing/malformed envelope fails closed.
 
 Only HTTPS downloads from the guide's
 `dmprod-datasets.s3.ap-southeast-1.amazonaws.com` host are accepted. Redirects
@@ -75,7 +74,7 @@ Some DataMall endpoints return JSON records directly rather than a temporary
 file link. Those need a separate acquisition adapter when implemented; the
 linked-file descriptor is not a universal DataMall API framework. Reuse bounded
 HTTP mechanics and snapshot persistence while keeping response parsing in the
-adapter. Do not force JSON endpoints through `value[0].Link` or put their parsing
+adapter. Do not force JSON endpoints through `value[0].link` (with legacy `Link` supported) or put their parsing
 inside GTFS code. No direct-JSON collector is implemented yet.
 
 ## Public publication and notification
