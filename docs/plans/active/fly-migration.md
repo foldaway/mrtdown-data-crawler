@@ -17,7 +17,7 @@ Use focused commits. No storage relocation, new database, or always-on process.
 Production cutover requires Fly access, an app deploy token, QStash keys/token,
 independent S3 credentials scoped to each Tigris bucket, and existing producer secrets.
 
-## Implementation status
+## Initial implementation status
 
 Prepared locally on `codex/migrate-crawler-to-fly` in focused commits.
 The operator requested code and setup instructions only: no app, credentials,
@@ -45,3 +45,9 @@ responses; a tested compatibility fix was deployed through CI. Authenticated
 schedule/realtime smoke checks returned 204, and all three feeds were retained
 and publicly published. Public schedule ZIP bytes match capture SHA-256 and
 length. Schedule notifications are now enabled for downstream inspection.
+
+The data-repo receiver initially rejected valid single-digit-hour GTFS times.
+A narrow parser fix passed 102 file-system tests and local inspection of the
+exact production capture with zero structural errors; receiver CI verification
+is tracked in mrtdown-data PR #370. This is a receiver compatibility correction,
+not a change to acquisition, canonical mapping or storage.

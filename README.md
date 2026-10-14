@@ -4,8 +4,8 @@ MRTDown evidence and DataMall acquisition on Node.js, packaged for Fly.io and
 scheduled through Upstash QStash. Tigris provides the private archive and public
 snapshot store with independent bucket credentials; `mrtdown-data` receives the existing GitHub dispatch contracts.
 
-The Fly migration is prepared locally. Provisioning and production cutover are
-separate operator steps; see [the setup guide](docs/fly-setup.md).
+Production runs on Fly with CI-owned QStash schedules and independent Tigris
+buckets. See [the setup guide](docs/fly-setup.md) for configuration and rollback.
 
 ## Jobs
 
